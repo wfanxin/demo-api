@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\DB;
 
 class Permission extends BaseModel
 {
-    public $table = "permissions";
-    public $db = "";
+    public $table = 'permissions';
+    public $db = '';
 
     public $data = [];
     public $fileList = [];
@@ -92,7 +92,6 @@ class Permission extends BaseModel
             }
         }
 
-        ///
         return $data;
     }
 
@@ -141,7 +140,6 @@ class Permission extends BaseModel
     public function refresh()
     {
         $dir = app_path('Http/Controllers/Admin/');
-
         $this->scanFile($dir);
         $fileList = $this->fileList;
 
@@ -172,59 +170,60 @@ class Permission extends BaseModel
             $paths[] = $key;
         }
 
-        $list = $this->whereIn("path", $paths)->get()->toArray();
+        $list = $this->whereIn('path', $paths)->get()->toArray();
         if ( empty($list) ) {
             return 20001;
         }
 
         foreach ($list as $val) {
-            $navList[$val["path"]]["id"] = $val["id"];
+            $navList[$val['path']]['id'] = $val['id']; // 追加数据库id
         }
-
+print_r($permissionList);exit;
         // 更新数据库权限信息
         foreach ($permissionList as $permissions) {
-            $tmp = explode("_", $permissions["path"]);
+            $tmp = explode('_', $permissions['path']);
             $nav = $tmp['1'];
-            if (! array_key_exists($nav, $navList)) {
+            if (!array_key_exists($nav, $navList)) {
                 continue;
             }
             $pId = $navList[$nav]['id'];
 
             // 刷新二级权限
-            $path = $permissions["path"];
-            $this->_refreshMysql(["p_id", "name", "is_white", "path", "id_path", "created_at", "updated_at"], "path", [
+            $path = $permissions['path'];
+            $this->_refreshMysql(['p_id', 'name', 'is_white', 'path', 'id_path', 'created_at', 'updated_at'], 'path', [
                 0 => [
-                    "p_id" => $pId,
-                    "name" => $permissions["name"],
-                    "is_white" => $permissions["is_white"],
-                    "path" => PermissionFacade::pathEncode($path),
-                    "id_path" => sprintf("0|%s", $pId),
-                    "created_at" => date("Y-m-d H:i:s"),
-                    "updated_at" => date("Y-m-d H:i:s")
+                    'p_id' => $pId,
+                    'name' => $permissions['name'],
+                    'is_white' => $permissions['is_white'],
+                    'path' => PermissionFacade::pathEncode($path),
+                    'id_path' => sprintf("0|%s", $pId),
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'updated_at' => date('Y-m-d H:i:s')
                 ]
             ]);
+
             // 获取指定类的二级权限id
             $parent = $this->where([
-                "path" => $path,
-                "p_id" => $pId
+                'path' => $path,
+                'p_id' => $pId
             ])->first()->toArray();
 
-            if (! empty($permissions["sub"])) {
-                //刷新三级级权限
-                foreach ($permissions["sub"] as $sub) {
-                    $path = $sub["path"];
+            if (!empty($permissions['sub'])) {
+                // 刷新三级级权限
+                foreach ($permissions['sub'] as $sub) {
+                    $path = $sub['path'];
                     $subData[] = [
-                        "p_id" => $parent["id"],
-                        "name" => $sub["name"],
-                        "is_white" => $parent["is_white"] ? $parent["is_white"]: $sub["is_white"],
-                        "path" => PermissionFacade::pathEncode($path),
-                        "id_path" => sprintf("0|%s|%s", $pId, $parent["id"]),
-                        "created_at" => date("Y-m-d H:i:s"),
-                        "updated_at" => date("Y-m-d H:i:s")
+                        'p_id' => $parent['id'],
+                        'name' => $sub['name'],
+                        'is_white' => $parent['is_white'] ? $parent['is_white'] : $sub['is_white'],
+                        'path' => PermissionFacade::pathEncode($path),
+                        'id_path' => sprintf("0|%s|%s", $pId, $parent['id']),
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
                     ];
                 }
 
-                $this->_refreshMysql(["p_id", "name", "is_white", "path", "id_path", "created_at", "updated_at"], "path", $subData);
+                $this->_refreshMysql(['p_id', 'name', 'is_white', 'path', 'id_path', 'created_at', 'updated_at'], 'path', $subData);
             }
         }
 
@@ -329,9 +328,10 @@ class Permission extends BaseModel
         }
 
         $result = $this->whereIn($whereFields, $params)->get($whereFields)->toArray();
-        $exists = [];
-        print_r($result);exit;
+
+        // update
         if (!empty($result)) {
+            $exists = [];
             foreach ($result as $val) {
                 $exists[] = $val['path'];
             }
@@ -341,10 +341,9 @@ class Permission extends BaseModel
             $pid = '';
             $idPath = '';
             foreach ($data as $key => $item) {
-                if ( in_array($item['path'], $exists) ) {
+                if (in_array($item['path'], $exists)) {
                     unset($data[$key]);
-                    $item['is_white'] = empty($item['is_white'])? 0: $item['is_white'];
-
+                    $item['is_white'] = empty($item['is_white']) ? 0 : $item['is_white'];
                     $name .= sprintf("WHEN '%s' THEN '%s'\n", $item['path'], $item['name']);
                     $isWhite .= sprintf("WHEN '%s' THEN '%s'\n", $item['path'], $item['is_white']);
                     $pid .= sprintf("WHEN '%s' THEN '%s'\n", $item['path'], $item['p_id']);
@@ -352,10 +351,10 @@ class Permission extends BaseModel
                 }
             }
 
-            $name = trim($name, ",");
-            $isWhite = trim($isWhite, ",");
-            $pid = trim($pid, ",");
-            $idPath = trim($idPath, ",");
+            $name = trim($name, ',');
+            $isWhite = trim($isWhite, ',');
+            $pid = trim($pid, ',');
+            $idPath = trim($idPath, ',');
             $pathStr = implode("','", $exists);
             $sql = sprintf("UPDATE `%s` SET `name` = (CASE `path` %s END), `is_white` = (CASE `path` %s END), `p_id` = (CASE `path` %s END), `id_path` = (CASE `path` %s END) where `path` in ('%s')",
                 $this->table,
@@ -366,31 +365,29 @@ class Permission extends BaseModel
                 $pathStr
             );
 
-            ///
             $result1 = DB::statement($sql);
         }
 
-        ///insert
+        // insert
         if (!empty($data)) {
-            $values="";
+            $values = '';
             foreach ($data as $k => $val) {
-                $values .= "(";
+                $values .= '(';
                 foreach ($fields as $field) {
                     $insertValue = addslashes($val[$field]);
 
                     $values .= "'{$insertValue}',";
                 }
-                $values = rtrim($values, ",");
-                $values .= "),";
+                $values = rtrim($values, ',');
+                $values .= '),';
             }
-            $values = rtrim($values, ",");
+            $values = rtrim($values, ',');
             $sql = sprintf("INSERT INTO `%s`(`%s`) VALUES %s",
                 $this->table,
                 implode("`,`", $fields),
                 $values
             );
 
-            ///
             $result2 = DB::statement($sql);
         }
 

@@ -7,15 +7,15 @@ return [
     "nav" => [
         'Welcome' => [
             'sort' => 1,
-            'alias' => "首页"
+            'alias' => '首页'
         ],
         'Property' => [
             'sort' => 2,
-            'alias' => "物业管理"
+            'alias' => '物业管理'
         ],
         'System' => [
             'sort' => 3,
-            'alias' => "系统管理"
+            'alias' => '系统管理'
         ],
 
     ],

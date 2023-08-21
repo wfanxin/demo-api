@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
 
 /**
- * @name
+ * @name 物业
  * Class IndexController
  * @package App\Http\Controllers\Admin\Property
  *

@@ -127,7 +127,7 @@ class PermissionController extends Controller
     public function update(Request $request, Permission $permission)
     {
         $code = $permission->refresh();
-        if ($code == 10000) {
+        if ($code == 10000) { // 成功
             $redisKey = config('redisKey');
             $rbacKey = sprintf($redisKey['rbac']['key'], $request->userId);
             Redis::del($rbacKey);
