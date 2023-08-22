@@ -178,12 +178,14 @@ class Permission extends BaseModel
         foreach ($list as $val) {
             $navList[$val['path']]['id'] = $val['id']; // 追加数据库id
         }
-print_r($permissionList);exit;
+
         // 更新数据库权限信息
+        $nav_delete_list = []; // 需要删除的一级目录
         foreach ($permissionList as $permissions) {
             $tmp = explode('_', $permissions['path']);
             $nav = $tmp['1'];
             if (!array_key_exists($nav, $navList)) {
+                $nav_delete_list[] = $nav;
                 continue;
             }
             $pId = $navList[$nav]['id'];
@@ -224,6 +226,19 @@ print_r($permissionList);exit;
                 }
 
                 $this->_refreshMysql(['p_id', 'name', 'is_white', 'path', 'id_path', 'created_at', 'updated_at'], 'path', $subData);
+            }
+        }
+
+        // 删除无用的权限
+        $info_list = $this->where('p_id', 0)->whereNotIn('path', array_keys($navList))->get();
+        $info_list = json_decode(json_encode($info_list), true);
+        $nav_delete_list = array_merge($nav_delete_list, array_column($info_list, 'path'));
+        $nav_delete_list = array_unique($nav_delete_list);
+        foreach ($nav_delete_list as $value) {
+            $info = $this->where('path', $value)->first();
+            $info = json_decode(json_encode($info), true);
+            if (!empty($info)) {
+                $this->where('id', $info['id'])->orWhere('id_path', "0|{$info['id']}")->orWhere('id_path', 'like', "0|{$info['id']}|%")->delete();
             }
         }
 

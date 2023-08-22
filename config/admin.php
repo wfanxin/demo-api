@@ -17,7 +17,6 @@ return [
             'sort' => 3,
             'alias' => '系统管理'
         ],
-
     ],
     'aliyun_oss' => [
         'AccessKeyId' => '',
