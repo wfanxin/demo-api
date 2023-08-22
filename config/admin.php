@@ -4,7 +4,8 @@
  */
 
 return [
-    "nav" => [
+    // sort唯一
+    'nav' => [
         'Welcome' => [
             'sort' => 1,
             'alias' => '首页'
@@ -23,7 +24,7 @@ return [
         'AccessKeySecret' => '',
         'city' => '',
         'bucket' => 'img-dsg',
-        'OSS_ROOT' => env('OSS_TEST', ''),
+        'OSS_ROOT' => env('OSS_TEST',''),
         'url_pre' => 'https://img-dsg.oss-cn-shanghai.aliyuncs.com/',
         'url_pre_internal' =>'https://img-dsg.oss-cn-shanghai-internal.aliyuncs.com/',
         'headImg' =>'member/headImg/', // 用户头像路径

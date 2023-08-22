@@ -49,45 +49,61 @@ class Permission extends BaseModel
 
     /**
      * 获取权限
+     * @return array|mixed
      */
     public function getPermissions()
     {
-        $where[] = ['is_white','=',0];
-        $where[] = ['path','!=','Welcome'];
-        $permissions = $this->where($where)->get()->toArray();
+        $where[] = ['is_white', '=', 0];
+        $where[] = ['path', '!=', 'Welcome'];
+        $permissions = $this->where($where)->orderBy('p_id', 'asc')->orderBy('id', 'asc')->get()->toArray();
 
         if (empty ($permissions)) {
             return [];
         }
 
         foreach ($permissions as $permission) {
-            $tmp = explode("|", $permission['id_path']);
+            $tmp = explode('|', $permission['id_path']);
             array_shift($tmp);
-            $permission['id_path'] = implode("|", $tmp);
+            $permission['id_path'] = implode('|', $tmp);
 
             if ($permission['p_id'] == 0) {
                 $this->data[$permission['id']] = [
-                    "id" => $permission['id'],
-                    "name" => $permission['name'],
-                    "key" => $permission['path'],
-                    "id_path" => $permission['id_path'],
+                    'id' => $permission['id'],
+                    'name' => $permission['name'],
+                    'key' => $permission['path'],
+                    'id_path' => $permission['id_path'],
                 ];
             } else {
-                $idPath = explode("|", $permission['id_path']);
+                $idPath = explode('|', $permission['id_path']);
                 $this->formatResult($permission, $idPath);
             }
         }
 
-        $data = $this->sortResult($this->data);
-        ///
+        // 按admin.nav配置进行排序
+        $navList = config('admin.nav');
+        $navList = array_column($navList,'sort','alias');
+        $data = [];
+        foreach ($this->data as $value) {
+            if (isset($navList[$value['name']])) {
+                $data[$navList[$value['name']]] = $value;
+            }
+        }
+        $data = $this->sortResult($data);
+
         return $data;
     }
 
+    /**
+     * 去除数组的建
+     * @param $data
+     * @return mixed
+     */
     protected function sortResult($data)
     {
-        sort($data);
+        ksort($data);
+        $data = array_values($data);
         foreach ($data as $key => $val) {
-            if (! empty($data[$key]['children']) ) {
+            if (!empty($data[$key]['children']) ) {
                 $data[$key]['children'] = $this->sortResult($data[$key]['children']);
             }
         }
@@ -106,29 +122,29 @@ class Permission extends BaseModel
             return [];
         }
 
-        if ( count($idPath) > 1) {
+        if (count($idPath) > 1) {
             $cur = $idPath[0];
             array_shift($idPath);
             $next = $idPath[0];
             array_shift($idPath);
 
             if (count($idPath) == 0) {
-                $this->data[$cur]["children"][$next]['children'][$permission['id']] = [
-                    "id" => $permission['id'],
-                    "name" => $permission['name'],
-                    "key" => $permission['path'],
-                    "id_path" => $permission['id_path'],
+                $this->data[$cur]['children'][$next]['children'][$permission['id']] = [
+                    'id' => $permission['id'],
+                    'name' => $permission['name'],
+                    'key' => $permission['path'],
+                    'id_path' => $permission['id_path'],
                 ];
             } else {
-                $this->data[$cur]["children"][$next][] = $this->formatResult($permission, $idPath);
+                $this->data[$cur]['children'][$next][] = $this->formatResult($permission, $idPath);
             }
         } else {
-            $this->data[$permission['p_id']]["children"][$permission['id']] = [
-                    "id" => $permission['id'],
-                    "name" => $permission['name'],
-                    "key" => $permission['path'],
-                    "id_path" => $permission['id_path'],
-                ];
+            $this->data[$permission['p_id']]['children'][$permission['id']] = [
+                'id' => $permission['id'],
+                'name' => $permission['name'],
+                'key' => $permission['path'],
+                'id_path' => $permission['id_path'],
+            ];
         }
     }
 
@@ -211,7 +227,7 @@ class Permission extends BaseModel
             ])->first()->toArray();
 
             if (!empty($permissions['sub'])) {
-                // 刷新三级级权限
+                // 刷新三级权限
                 foreach ($permissions['sub'] as $sub) {
                     $path = $sub['path'];
                     $subData[] = [
@@ -226,11 +242,16 @@ class Permission extends BaseModel
                 }
 
                 $this->_refreshMysql(['p_id', 'name', 'is_white', 'path', 'id_path', 'created_at', 'updated_at'], 'path', $subData);
+
+                // 删除无用的三级权限
+                $temp_path = array_column($subData, 'path');
+                $this->where('p_id', $parent['id'])->whereNotIn('path', $temp_path)->delete();
             }
         }
 
         // 删除无用的权限
-        $info_list = $this->where('p_id', 0)->whereNotIn('path', array_keys($navList))->get();
+        $temp_path = array_keys($navList);
+        $info_list = $this->where('p_id', 0)->whereNotIn('path', $temp_path)->get();
         $info_list = json_decode(json_encode($info_list), true);
         $nav_delete_list = array_merge($nav_delete_list, array_column($info_list, 'path'));
         $nav_delete_list = array_unique($nav_delete_list);
@@ -238,7 +259,7 @@ class Permission extends BaseModel
             $info = $this->where('path', $value)->first();
             $info = json_decode(json_encode($info), true);
             if (!empty($info)) {
-                $this->where('id', $info['id'])->orWhere('id_path', "0|{$info['id']}")->orWhere('id_path', 'like', "0|{$info['id']}|%")->delete();
+                $this->where('id', $info['id'])->orWhere('p_id', $info['id'])->orWhere('id_path', 'like', "0|{$info['id']}|%")->delete();
             }
         }
 
@@ -306,15 +327,15 @@ class Permission extends BaseModel
      * @param string $path
      * @return bool
      */
-    public function scanFile($path = ""){
-        if ($path == "") {
+    public function scanFile($path = ''){
+        if ($path == '') {
             return false;
         }
 
         $file = new \FilesystemIterator($path);
         foreach ($file as $fileinfo) {
             if($fileinfo->isDir()){
-                $this->scanFile($path . $fileinfo->getFilename() . "/");
+                $this->scanFile($path . $fileinfo->getFilename() . '/');
             } else if ($fileinfo->isFile()) {
                 $this->fileList[] = $path.$fileinfo->getFilename();
             }
