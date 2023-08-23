@@ -298,7 +298,7 @@ class UserController extends Controller
      * 删除指定用户信息
      * @name 删除指定用户信息
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      *
      * @Delete("/lv/users/{?id}")
@@ -409,8 +409,9 @@ class UserController extends Controller
             $name = '姓名';
         }
 
+        unset($request->userId); // 没这个参数不会记录操作log
         if (!empty($exist)) {
-            return $this->jsonAdminResultWithLog($request, [], 10001, '系统已存在该'.$name);
+            return $this->jsonAdminResultWithLog($request, [], 10001, '系统已存在该' . $name);
         } else {
             return $this->jsonAdminResultWithLog($request);
         }

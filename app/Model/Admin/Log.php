@@ -72,21 +72,21 @@ class Log extends Model
      * @return int|mixed
      *
      */
-    public function add(Request $request, $response=[]) {
+    public function add(Request $request, $response = []) {
         // 格式成数据库path字段格式
         $xPermission = PermissionFacade::getRequestPath();
 
         $op = $request->getMethod();
-        if (in_array($op, ['POST', 'PATCH', 'PUT', 'DELETE']) && ! empty($request->userId) ) {
-            $permission = DB::table("permissions")->where('path',$xPermission)->first("name");
-            if (! empty($permission) ) {
+        if (in_array($op, ['POST', 'PATCH', 'PUT', 'DELETE']) && !empty($request->userId)) {
+            $permission = DB::table('permissions')->where('path', $xPermission)->first('name');
+            if (!empty($permission)) {
                 $requestMsg = serialize([
                     'name' => $permission->name,
                     'url' => $xPermission,
                     'param' => $request->all()
                 ]);
 
-                //
+                // 添加
                 return $this->insert([
                     'op_uid' => $request->userId,
                     'ip' => $request->getClientIp(),
@@ -99,7 +99,6 @@ class Log extends Model
             }
         }
 
-        //
         return 0;
     }
 }

@@ -33,27 +33,27 @@ class LogController extends Controller
         })
      *
      @Response(200, body={
-            "code":0,
-            "message":"success",
-            "total": 10,
-            "logs":{
-                 {
-                    "created_at": "2021-08-30 14:31:22",
-                    "id": 2,
-                    "ip": "192.168.2.204",
-                    "name": "chenjj",
-                    "op_uid": "2",
-                    "request": {"name": "刷新权限", "url": "@Put:lv_member_permissions", "param": "[]"},
-                    "response": {"code": 200, "message": "success"},
-                    "updated_at": "2021-08-30 14:31:22",
-                    "user_name": "chenjj",
-                }
+        "code":0,
+        "message":"success",
+        "total": 10,
+        "logs":{
+             {
+                "created_at": "2021-08-30 14:31:22",
+                "id": 2,
+                "ip": "192.168.2.204",
+                "name": "chenjj",
+                "op_uid": "2",
+                "request": {"name": "刷新权限", "url": "@Put:lv_member_permissions", "param": "[]"},
+                "response": {"code": 200, "message": "success"},
+                "updated_at": "2021-08-30 14:31:22",
+                "user_name": "chenjj",
             }
-        },
-        attributes={
-            @Attribute("total", type="int", description="总条数", sample=10,required=true),
-            @Attribute("logs", type="string", description="操作记录集合", sample="[]",required=true),
-        })
+        }
+    },
+    attributes={
+        @Attribute("total", type="int", description="总条数", sample=10,required=true),
+        @Attribute("logs", type="string", description="操作记录集合", sample="[]",required=true),
+    })
      */
     public function index(Request $request,Log $log)
     {

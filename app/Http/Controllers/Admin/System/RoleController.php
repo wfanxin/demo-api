@@ -258,7 +258,6 @@ class RoleController extends Controller
      */
     public function batchDestroy(Request $request, Role $role,User $user)
     {
-        //
         $params = $request->all();
         $ids = explode(',', $params['ids']);
         if (empty($params['ids'])) {
