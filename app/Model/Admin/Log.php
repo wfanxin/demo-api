@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class Log extends Model
 {
-    public $table = "logs";
+    public $table = 'logs';
 
     /**
      * @param $params
@@ -17,50 +17,52 @@ class Log extends Model
      */
     public function getList($params)
     {
-//        DB::connection()->enableQueryLog();
+        $logJoinUsers = DB::table('logs')
+            ->select('logs.*', 'users.user_name', 'users.id', 'users.name')
+            ->leftJoin('users', 'logs.op_uid', '=', 'users.id');
+
+        if (!empty($params['user_name'])) {
+            $logJoinUsers->where('users.user_name', 'like', "%{$params['user_name']}%");
+        }
+
+        if (!empty($params['select_time'][0]) && !empty($params['select_time'][1])) {
+            $logJoinUsers->where('logs.created_at', '>=', $params['select_time'][0])
+                ->where('logs.created_at', '<=', $params['select_time'][1]);
+        }
+
         $name = [];
-        $permissions = explode("|", $params["permission"]);
-        $permissionId = end($permissions);
-        $idPath = sprintf("0|%s", $params["permission"])."%";
-        $permissionsList = DB::table('permissions')
-            ->where("id_path", "like", $idPath)
-            ->orWhere("id", $permissionId)
-            ->get("name");
-        if (! empty($permissionsList) ) {
-            foreach ($permissionsList as $val) {
-                $name[] = $val->name;
+        if (!empty($params['permission'])) {
+            $permissions = explode('|', $params['permission']);
+            $permissionId = end($permissions);
+            $idPath = sprintf('0|%s', $params['permission']);
+            $permissionsList = DB::table('permissions')
+                ->where('id_path', 'like', $idPath . '|%')
+                ->orWhere('id_path', $idPath)
+                ->orWhere('id', $permissionId)
+                ->get('name');
+            if (! empty($permissionsList) ) {
+                foreach ($permissionsList as $val) {
+                    $name[] = $val->name;
+                }
             }
         }
 
-        $logJoinUsers = DB::table('logs')
-            ->leftJoin('users', 'logs.op_uid', '=', 'users.id');
-
-        $logJoinUsers->select("logs.*","users.user_name","users.id","users.name")
-            ->where('users.user_name', 'like', "%{$params['user_name']}%");
-
-        if (! empty($params['select_time'][0]) && ! empty($params['select_time'][1])) {
-            $logJoinUsers->where('logs.created_at', ">=", $params['select_time'][0])
-                ->where('logs.created_at', "<=", $params['select_time'][1]);
+        if (!empty($name)) {
+            $logJoinUsers->whereIn('logs.name', $name);
         }
 
-        if (! empty($name) ) {
-            $logJoinUsers->whereIn("logs.name", $name);
-        }
-
-        $list=$logJoinUsers->orderBy("logs.created_at", "desc")
+        $list = $logJoinUsers->orderBy('logs.created_at', 'desc')
             ->paginate(15, ['*'], 'page', $params['page']);
 
         $data = [];
-        if (! empty($list->items())) {
-            foreach ($list->items() as $k=>$val) {
+        if (!empty($list->items())) {
+            foreach ($list->items() as $val) {
                 $val->request = unserialize($val->request);
                 $val->response = unserialize($val->response);
                 $data[] = $val;
             }
         }
-//        var_dump(DB::getQueryLog());
 
-        //
         return [$list, $data];
     }
 

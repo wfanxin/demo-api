@@ -1,5 +1,7 @@
 <?php
 
+use Illuminate\Support\Str;
+
 return [
 
     /*
@@ -35,6 +37,7 @@ return [
 
         'sqlite' => [
             'driver' => 'sqlite',
+            'url' => env('DATABASE_URL'),
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
             'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
@@ -42,17 +45,18 @@ return [
 
         'mysql' => [
             'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'lv'),
-            'username' => env('DB_USERNAME', 'lv'),
-            'password' => env('DB_PASSWORD', 'nZEbpBjetZrPyc4X'),
+            'database' => env('DB_DATABASE', 'forge'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
             'unix_socket' => env('DB_SOCKET', ''),
             'charset' => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix' => '',
             'prefix_indexes' => true,
-            'strict' => false,
+            'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
@@ -61,6 +65,7 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
+            'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
             'database' => env('DB_DATABASE', 'forge'),
@@ -75,6 +80,7 @@ return [
 
         'sqlsrv' => [
             'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
             'host' => env('DB_HOST', 'localhost'),
             'port' => env('DB_PORT', '1433'),
             'database' => env('DB_DATABASE', 'forge'),
@@ -115,59 +121,27 @@ return [
 
         'client' => env('REDIS_CLIENT', 'predis'),
 
-        /********************************************* 集群 start*******************************************************/
-//        'options' => [
-//            'cluster' => env('REDIS_CLUSTER', 'redis'),
-//        ],
-//
-//        ///集群ip集合 -> LvRedis.php 自动更新集群master配置需要
-//        'clusters_ip_list' => [
-//            6391 => '192.168.2.145',
-//            6392 => '192.168.2.145',
-//            6393 => '192.168.2.145',
-//            6394 => '192.168.2.145',
-//            6395 => '192.168.2.145',
-//            6396 => '192.168.2.145'
-//        ],
-//
-//        'clusters' => [
-//            'default' => [
-//                ///REDIS_HOST_NODE1 :节点后缀必须是连续的，并且从1开始
-//                [
-//                    'host' => env('REDIS_HOST_NODE1', ''),
-//                    'port' => env('REDIS_PORT_NODE1', ''),
-//                    'password' => env('REDIS_PASSWORD', null)
-//                ],
-//                [
-//                    'host' => env('REDIS_HOST_NODE2', ''),
-//                    'port' => env('REDIS_PORT_NODE2', ''),
-//                    'password' => env('REDIS_PASSWORD', null)
-//                ],
-//                [
-//                    'host' => env('REDIS_HOST_NODE3', ''),
-//                    'port' => env('REDIS_PORT_NODE3', ''),
-//                    'password' => env('REDIS_PASSWORD', null)
-//                ]
-//            ]
-//        ],
-        /********************************************* 集群 end*******************************************************/
+        'options' => [
+            'cluster' => env('REDIS_CLUSTER', 'predis'),
+            'prefix' => env('REDIS_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_database_'),
+        ],
 
-        /********************************************* 单机 start*******************************************************/
         'default' => [
+            'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'password' => env('REDIS_PASSWORD', null),
             'port' => env('REDIS_PORT', 6379),
-            'database' => env('REDIS_CACHE_DB', 0),
+            'database' => env('REDIS_DB', 0),
         ],
-        /********************************************* 单机 end*******************************************************/
 
         'cache' => [
+            'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'password' => env('REDIS_PASSWORD', null),
             'port' => env('REDIS_PORT', 6379),
-            'database' => env('REDIS_CACHE_DB', 0),
+            'database' => env('REDIS_CACHE_DB', 1),
         ],
 
-    ]
+    ],
 
 ];

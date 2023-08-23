@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin\System;
 use App\Model\Admin\Permission;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\Controller;
-use App\Facades\LvRedisFacade as Redis;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * 后台权限管理

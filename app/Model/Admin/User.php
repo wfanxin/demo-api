@@ -2,7 +2,6 @@
 
 namespace App\Model\Admin;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
@@ -17,18 +16,17 @@ class User extends Model
     public function getCurUser($id)
     {
         $redisKey = config('redisKey');
-        $rbacKey = sprintf($redisKey['rbac']['key'], $id);
-        $userInfoKey = sprintf($redisKey['user_info']['key'], $id);
+        $rbacKey = sprintf($redisKey['rbac']['key'], $id); // 角色权限信息
+        $userInfoKey = sprintf($redisKey['user_info']['key'], $id); // 用户信息
 
-        /// from redis
+        // from redis
         $user = Redis::hgetall($userInfoKey);
         $rbac = Redis::hgetall($rbacKey);
-        if ( ! empty($user) && ! empty($rbac) ) {
+        if (!empty($user) && !empty($rbac) ) {
             $roles = json_decode($rbac['role'], true);
             $permission = json_decode($rbac['permission'], true);
             $nav = json_decode($rbac['nav'], true);
 
-            //
             return [
                 'user' => $user,
                 'roles' => $roles,
@@ -37,16 +35,16 @@ class User extends Model
             ];
         }
 
-        /// from mysql
-        $user = $this->where(['id'=>$id])->first()->toArray();
+        // from mysql
+        $user = $this->where(['id' => $id])->first()->toArray();
         $roleIds = json_decode($user['roles'], true);
-        if (! empty($roleIds)) {
-            $rolesList = DB::table("roles")->whereIn('id', $roleIds)->get();
+        if (!empty($roleIds)) {
+            $rolesList = DB::table('roles')->whereIn('id', $roleIds)->get();
         }
 
         $roles = [];
         $permissionsTmp = [];
-        if (! empty($rolesList)) {
+        if (!empty($rolesList)) {
             foreach ($rolesList as $role) {
                 $roles[] = $role->name;
                 $permission = json_decode($role->permission, true);
@@ -57,16 +55,16 @@ class User extends Model
         $permissions = [];
         if ($permissionsTmp) {
             foreach ($permissionsTmp as $permission) {
-                $permissionArr = explode("_", $permission);
+                $permissionArr = explode('_', $permission);
                 $count = count($permissionArr);
                 $permissions[$permission] = $permission;
 
                 if ($count > 1)  {
-                    for ($i=0;$i<$count;$i++) {
-                        if ($i==0) {
+                    for ($i = 0; $i < $count; $i++) {
+                        if ($i == 0) {
                             $permissions[$permissionArr[$i]] = $permissionArr[$i];
                         } else {
-                            $index = $permissionArr[$i-1] ."_". $permissionArr[$i];
+                            $index = $permissionArr[$i-1] . '_' . $permissionArr[$i];
                             $permissions[$index] = $index;
                         }
                     }
@@ -75,10 +73,10 @@ class User extends Model
         }
         sort($permissions);
 
-        ///栏目 id
+        // 栏目id
         $nav = [];
-        $navTmp = DB::table("permissions")->whereIn("id", $permissions)->get("p_id")->toArray();
-        if (! empty($navTmp) ) {
+        $navTmp = DB::table('permissions')->whereIn('id', $permissions)->get('p_id')->toArray();
+        if (!empty($navTmp)) {
             foreach ($navTmp as $val) {
                 $nav[] = $val->p_id;
             }
@@ -86,14 +84,14 @@ class User extends Model
         $nav = array_merge($nav, $permissions);
         $nav = array_unique($nav);
         sort($nav);
-        ///栏目 path
-        $pathTmp = DB::table("permissions")
-            ->whereIn("id", $nav)
+        // 栏目path
+        $pathTmp = DB::table('permissions')
+            ->whereIn('id', $nav)
             ->where(function ($q) {
-                $q->where("is_show", 1)
-                    ->orWhere("p_id", 0);
+                $q->where('is_show', 1)
+                    ->orWhere('p_id', 0);
             })
-            ->get("path")->toArray();
+            ->get('path')->toArray();
         $pathList = [];
         if (! empty($pathTmp) ) {
             foreach ($pathTmp as $val) {
@@ -101,7 +99,7 @@ class User extends Model
             }
         }
 
-        ///
+        // set redis
         Redis::hmset($rbacKey, [
             'role' => json_encode($roles),
             'permission' => json_encode($permissions),

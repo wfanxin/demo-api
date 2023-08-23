@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin\System;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\Controller;
 use App\Model\Admin\User;
-use App\Facades\LvRedisFacade as Redis;
 
 /**
  * 用户管理
@@ -39,53 +38,52 @@ class UserController extends Controller
         "total": 10,
         "users":{
             {
-                "id": 2,
-                "name": "test",
-                "user_name": "test",
-                "password": "85316397bfcb170c8590dc724b3919da",
-                "last_ip": "172.17.0.1",
-                "status": 1,
-                "error_amount": 0,
-                "roles": "['2']",
-                "avatar": "",
-                "created_at": "2019-02-25 09:47:45",
-                "updated_at": "2019-07-22 14:02:49",
+            "id": 2,
+            "name": "test",
+            "user_name": "test",
+            "password": "85316397bfcb170c8590dc724b3919da",
+            "last_ip": "172.17.0.1",
+            "status": 1,
+            "error_amount": 0,
+            "roles": "['2']",
+            "avatar": "",
+            "created_at": "2019-02-25 09:47:45",
+            "updated_at": "2019-07-22 14:02:49",
             }
         }
     },
-        attributes={
-            @Attribute("total", type="int", description="查询到的用户总数", sample=10,required=true),
-            @Attribute("users", type="string", description="用户数据集合", sample="[]",required=true),
-      })
+    attributes={
+        @Attribute("total", type="int", description="查询到的用户总数", sample=10,required=true),
+        @Attribute("users", type="string", description="用户数据集合", sample="[]",required=true),
+    })
      */
     public function index(Request $request,User $user)
     {
-        //
         $params = $request->all();
         $where = [];
 
-        if ($params["status"] > -1) {
-            $where[] = ["status", "=", $params["status"]];
+        if ($params['status'] > -1) {
+            $where[] = ['status', '=', $params['status']];
         }
 
-        if (! empty($params["name"]) ) {
-            $where[] = ["name", "like", "%{$params["name"]}%"];
+        if (! empty($params['name']) ) {
+            $where[] = ['name', 'like', "%{$params['name']}%"];
         }
 
-        //order by
-        $orderField = "id";
-        $sort = "desc";
-        if (! empty($params["order"])) {
-            $order = explode("|", $params["order"]);
+        // order by
+        $orderField = 'id';
+        $sort = 'desc';
+        if (!empty($params['order'])) {
+            $order = explode('|', $params['order']);
             $orderField = $order[0];
-            $sort = str_replace("ending", "", $order[1]);
+            $sort = str_replace('ending', '', $order[1]);
         }
 
         $data = $user->where($where)->orderBy($orderField, $sort)->paginate(15, ["*"], "page", $params["page"]);
 
         return $this->jsonAdminResult([
-            "total" => $data->total(),
-            "users" => $data->items()
+            'total' => $data->total(),
+            'users' => $data->items()
         ]);
     }
 
@@ -112,38 +110,37 @@ class UserController extends Controller
      */
     public function store(Request $request,User $user)
     {
-        //
         $params = $request->all();
-        $data = $user->where('name',$params["name"])->orWhere('user_name',$params["user_name"])->get();
+        $data = $user->where('name', $params['name'])->orWhere('user_name', $params['user_name'])->get();
         if (!empty($data)){
             $data = json_decode(json_encode($data),true);
             foreach ($data as $val){
-                if ($val['name'] == $params["name"]){
+                if ($val['name'] == $params['name']){
                     return $this->jsonAdminResult([],10001,'系统已存在该姓名');
-                }if ($val['user_name'] == $params["user_name"]){
+                }if ($val['user_name'] == $params['user_name']){
                     return $this->jsonAdminResult([],10001,'系统已存在该用户名');
                 }
             }
         }
-        if (empty($params["user_roles"])) {
+        if (empty($params['user_roles'])) {
             return $this->jsonAdminResult([],10001,'请选择角色');
         }
         $result = $user->insert([
-            "name" => $params["name"],
-            "user_name" => $params["user_name"],
-            "password" => $this->_encodePwd(trim($params["password"])),
-            "salt" => $this->_salt,
-            "status" => 1,
-            "avatar" => "",
-            "roles" => json_encode([strval($params["user_roles"])]),
-            "created_at" => date("Y-m-d H:i:s"),
-            "updated_at" => date("Y-m-d H:i:s")
+            'name' => $params['name'],
+            'user_name' => $params['user_name'],
+            'password' => $this->_encodePwd(trim($params['password'])),
+            'salt' => $this->_salt,
+            'status' => 1,
+            'avatar' => '',
+            'roles' => json_encode([strval($params['user_roles'])]),
+            'created_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s')
         ]);
 
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [],10001);
         }
     }
 
@@ -171,18 +168,17 @@ class UserController extends Controller
      */
     public function show(Request $request, $id, User $user)
     {
-        //
         if ($request->userId <= 0 || $id != $request->userId) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
 
         $userInfo = $user->getCurUser($request->userId);
 
-        return $this->jsonAdminResultWithLog($request,[
-            "name" => $userInfo["user"]['name'],
-            "roles" => $userInfo["roles"],
-            "permissions" => $userInfo["permissions"],
-            "nav" => $userInfo["nav"]
+        return $this->jsonAdminResultWithLog($request, [
+            'name' => $userInfo['user']['name'],
+            'roles' => $userInfo['roles'],
+            'permissions' => $userInfo['permissions'],
+            'nav' => $userInfo['nav']
         ]);
     }
 
@@ -212,46 +208,48 @@ class UserController extends Controller
      */
     public function update(Request $request, $id, User $user)
     {
-        //
-        $redisKey = config("redisKey");
         $params = $request->all();
+
         if ($id <= 0) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
+
         $data = [
-            "name" => $params["name"],
-            "user_name" => $params["user_name"],
-            "status" => (int)$params["status"],
-            "roles" => json_encode([strval($params["user_roles"])]),
-            "updated_at" => date("Y-m-d H:i:s")
+            'name' => $params['name'],
+            'user_name' => $params['user_name'],
+            'status' => (int)$params['status'],
+            'roles' => json_encode([strval($params['user_roles'])]),
+            'updated_at' => date('Y-m-d H:i:s')
         ];
 
-        $serData = $user->where('id','!=',$id)
+        $serData = $user->where('id', '!=', $id)
             ->where(function ($query) use ($params) {
-                $query->where('name', '=', $params["name"])
-                    ->orWhere('user_name', '=', $params["user_name"]);
+                $query->where('name', '=', $params['name'])
+                    ->orWhere('user_name', '=', $params['user_name']);
             })->get();
+        $serData = json_decode(json_encode($serData),true);
+
         if (!empty($serData)){
-            $serData = json_decode(json_encode($serData),true);
             foreach ($serData as $val){
-                if ($val['name'] == $params["name"]){
+                if ($val['name'] == $params['name']){
                     return $this->jsonAdminResult([],10001,'系统已存在该姓名');
-                } if ($val['user_name'] == $params["user_name"]){
+                } if ($val['user_name'] == $params['user_name']){
                     return $this->jsonAdminResult([],10001,'系统已存在该用户名');
                 }
             }
         }
-        if (!empty($params["password"]) && $params["password"] == $params["re_password"]) {
-            $userInfo = $user->where(["id" => $id])->first();
-            $data["password"] = $this->_encodePwd(trim($params["password"]), $userInfo["salt"]);
+
+        if (!empty($params['password']) && $params['password'] == $params['re_password']) {
+            $userInfo = $user->where(['id' => $id])->first();
+            $data['password'] = $this->_encodePwd(trim($params['password']), $userInfo['salt']);
         }
 
-        $result = $user->where(["id" => $id])->update($data);
+        $result = $user->where(['id' => $id])->update($data);
 
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 
@@ -270,28 +268,29 @@ class UserController extends Controller
      @Attribute("password", type="string", required=true, description="新密码", sample="123123112"),
      })
      @Response(200, body={
-     "code":0,
-     "message":"success",
+         "code":0,
+         "message":"success",
      })
      */
     public function changePwd(Request $request, User $user)
     {
-        //
         $params = $request->all();
 
         $userInfo = $user->where('id', $request->userId)->first()->toArray();
-        ///验证原密码
-        if ( empty($params['old_password']) || $userInfo['password'] != $this->_encodePwd($params['old_password'], $userInfo['salt'])) {
-            return $this->jsonAdminResultWithLog($request,[], 10011);
+
+        // 验证原密码
+        if (empty($params['old_password']) || $userInfo['password'] != $this->_encodePwd($params['old_password'], $userInfo['salt'])) {
+            return $this->jsonAdminResultWithLog($request, [], 10011);
         }
 
         $result = $user->where('id', $request->userId)->update([
             'password' => $this->_encodePwd($params['password'], $userInfo['salt'])
         ]);
+
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 
@@ -315,17 +314,18 @@ class UserController extends Controller
      */
     public function destroy(Request $request, $id, User $user)
     {
-        //
         $params = $request->all();
+
         if ($id <= 0) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
-        $result = $user->where(["id" => $id])->delete();
+
+        $result = $user->where(['id' => $id])->delete();
 
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 
@@ -349,18 +349,19 @@ class UserController extends Controller
      */
     public function batchDestroy(Request $request, User $user)
     {
-        //
         $params = $request->all();
-        $ids = explode(",", $params["ids"]);
-        if (empty($params["ids"])) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+
+        if (empty($params['ids'])) {
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
-        $result = $user->whereIn("id", $ids)->delete();
+
+        $ids = explode(',', $params['ids']);
+        $result = $user->whereIn('id', $ids)->delete();
 
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 
@@ -381,25 +382,26 @@ class UserController extends Controller
      @Attribute("user_name", type="string", required=false, description="用户名", sample="test"),
      })
      @Response(200, body={
-     "code":0,
-     "message":"success",
+         "code":0,
+         "message":"success",
      })
      *
      */
     public function checkName(Request $request, User $mUser)
     {
         $params = $request->all();
-        $where=[];
-        if ($params['id']>0){
-            $where[]=['id','!=',$params['id']];
+        $where = [];
+        if ($params['id'] > 0){
+            $where[] = ['id', '!=', $params['id']];
         }
-        if (! empty($params['user_name'])) {
+        $name = '';
+        if (!empty($params['user_name'])) {
             $exist = $mUser
                 ->where($where)
                 ->where('user_name', trim($params['user_name']))
                 ->first();
             $name = '用户名';
-        } else if (! empty($params['name'])) {
+        } else if (!empty($params['name'])) {
             $exist = $mUser
                 ->where($where)
                 ->where('name', trim($params['name']))
@@ -407,8 +409,8 @@ class UserController extends Controller
             $name = '姓名';
         }
 
-        if (! empty($exist)) {
-            return $this->jsonAdminResultWithLog($request,[], 10001, '系统已存在该'.$name);
+        if (!empty($exist)) {
+            return $this->jsonAdminResultWithLog($request, [], 10001, '系统已存在该'.$name);
         } else {
             return $this->jsonAdminResultWithLog($request);
         }

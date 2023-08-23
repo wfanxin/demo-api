@@ -18,7 +18,7 @@ trait EncodeTrait {
      * @param string $salt
      * @return string
      */
-    public function _encodePwd($pwd, $salt="")
+    public function _encodePwd($pwd, $salt = '')
     {
         $this->_salt = empty($salt) ? md5(rand(0, time()) . time()): $salt;
         return md5(base64_encode(sprintf("%s%s%s", $pwd, $this->_salt, $pwd)));

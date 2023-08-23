@@ -5,9 +5,8 @@ namespace App\Http\Middleware;
 use App\Facades\PermissionFacade;
 use App\Model\Admin\Permission;
 use App\Model\Admin\User;
-use App\Utils\MyRedis;
 use Closure;
-use App\Facades\LvRedisFacade as Redis;
+use Illuminate\Support\Facades\Redis;
 
 
 class AdminToken
@@ -40,7 +39,6 @@ class AdminToken
         $xTokenKey = sprintf($redisKey['x_token']['key'], $userId);
         $rbacKey = sprintf($redisKey['rbac']['key'], $userId);
         $mineToken = Redis::get($xTokenKey);
-        // $mineToken = MyRedis::get($xTokenKey);
         if (empty($mineToken) || $mineToken != $token) {
             return response()->json([
                 'code' => 20000,
@@ -52,10 +50,8 @@ class AdminToken
 
         /// 验证权限
         $isExistRbac = Redis::hgetall($rbacKey);
-        // $isExistRbac = MyRedis::hgetall($rbacKey);
         if ( $isExistRbac ) {
             $rbac = Redis::hgetall($rbacKey);
-            // $rbac = MyRedis::hgetall($rbacKey);
             $role = json_decode( $rbac['role'] , true);
             $permission = json_decode( $rbac['permission'] , true);
         } else {

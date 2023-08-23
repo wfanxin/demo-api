@@ -59,7 +59,7 @@ $dingoApi->version("v1", [
 $dingoApi->version("v1", [
     "middleware" => ["CrossHttp"]
 ], function ($dingoApi) {
-    //用户授权令牌 - 获取
+    // 用户授权令牌 - 获取
     $dingoApi->post("tokens", \App\Http\Controllers\Admin\System\TokenController::class."@store")->name("tokens.store");
 });
 

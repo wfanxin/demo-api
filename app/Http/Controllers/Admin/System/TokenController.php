@@ -6,9 +6,8 @@ use App\Http\Controllers\Admin\Controller;
 use App\Http\Requests\Admin\Login;
 use App\Http\Traits\ClearCacheTrait;
 use App\Model\Admin\User;
-use App\Utils\MyRedis;
 use Illuminate\Http\Request;
-use App\Facades\LvRedisFacade as Redis;
+use Illuminate\Support\Facades\Redis;
 
 /**
  * 用户授权令牌
@@ -48,63 +47,60 @@ class TokenController extends Controller
      */
     public function store(Login $request, User $user)
     {
-        //
-        $redisKey = config('redisKey');
-
         $where = [
             'user_name' => $request['user_name'],
         ];
+
         $userInfo = $user->where($where)->first();
+
         if (empty($userInfo)) {
-            return $this->jsonAdminResultWithLog($request,[], 10003);
+            return $this->jsonAdminResultWithLog($request, [], 10003);
         }
 
-        if ($userInfo['status'] == 2) {
-            return $this->jsonAdminResultWithLog($request,[], 10005);
+        if ($userInfo['status'] == 2) { // 锁定
+            return $this->jsonAdminResultWithLog($request, [], 10005);
         }
 
-        if ($userInfo['error_amount'] >= 5) { //超过五次
+        if ($userInfo['error_amount'] >= 5) { // 超过五次，则锁定
             $user->where(['id' => $userInfo['id']])->update([
                 'status' => 2
             ]);
 
-            return $this->jsonAdminResultWithLog($request,[], 10005);
+            return $this->jsonAdminResultWithLog($request, [], 10005);
         }
 
-        $request->userId = $userInfo['id'];
+        $request->userId = $userInfo['id']; // 当前账号用户id
 
-        ///验证密码
-        if ( empty($userInfo) || $userInfo['password'] != $this->_encodePwd($request['password'], $userInfo['salt'])) {
+        // 验证密码
+        if (empty($userInfo) || $userInfo['password'] != $this->_encodePwd($request['password'], $userInfo['salt'])) {
             $user->where(['user_name' => $request['user_name']])->increment('error_amount');
-            return $this->jsonAdminResultWithLog($request,[], 10003);
+            return $this->jsonAdminResultWithLog($request, [], 10003);
         }
+
         // 清除旧的登录信息缓存
         $this->clearXtoken($request->userId);
 
         $user->where(['user_name' => $request['user_name']])->update([
             'error_amount' => 0,
-            'last_ip' =>$request->getClientIp(),
-            'updated_at' => date("Y-m-d H:i:s")
+            'last_ip' => $request->getClientIp(),
+            'updated_at' => date('Y-m-d H:i:s')
         ]);
 
-        ///
-        $xTokenKey = sprintf($redisKey['x_token']['key'], $userInfo['id']);
-        $userInfoKey = sprintf($redisKey['user_info']['key'], $userInfo['id']);
+        $redisKey = config('redisKey');
+        $xTokenKey = sprintf($redisKey['x_token']['key'], $userInfo['id']); // 登录授权令牌信息
+        $userInfoKey = sprintf($redisKey['user_info']['key'], $userInfo['id']); // 用户信息
 
-        //发放校验令牌
+        // 发放校验令牌
         $time = time();
-        $auth = md5(md5(sprintf("%s_%s_%s", $time, "34jkjf234KGDF3ORGI4j", $userInfo['id'])));
-        $token = sprintf("%s|%s|%s",$auth, $time, $userInfo['id']);
-        // MyRedis::set($xTokenKey, $token);
-        // MyRedis::expire($xTokenKey, 86400);
-        // MyRedis::hmset($userInfoKey, $userInfo->toArray());
+        $auth = md5(md5(sprintf("%s_%s_%s", $time, '34jkjf234KGDF3ORGI4j', $userInfo['id'])));
+        $token = sprintf("%s|%s|%s", $auth, $time, $userInfo['id']);
 
         Redis::set($xTokenKey, $token);
-        Redis::expire($xTokenKey, 86400);
+        Redis::expire($xTokenKey, $redisKey['x_token']['ttl']);
         Redis::hmset($userInfoKey, $userInfo->toArray());
 
-        unset($request->userId); //没这个参数不会记录操作log
-        return $this->jsonAdminResultWithLog($request,[
+        unset($request->userId); // 没这个参数不会记录操作log
+        return $this->jsonAdminResultWithLog($request, [
             'token' => $token
         ]);
     }
@@ -123,21 +119,20 @@ class TokenController extends Controller
         "code":0,
         "message":"success",
         "data":"[]"
-        })
+    })
      */
     public function destroy(Request $request, $id)
     {
         if ($request->userId != $id) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
 
-        //
         $result = $this->clearXtoken($request->userId);
         if ($result) {
-            unset($request->userId); //没这个参数不会记录操作log
+            unset($request->userId); // 没这个参数不会记录操作log
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 }

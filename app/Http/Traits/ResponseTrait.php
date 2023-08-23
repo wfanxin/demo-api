@@ -33,7 +33,7 @@ trait ResponseTrait {
      * @param int $code
      * @return \Illuminate\Http\JsonResponse
      */
-    public function jsonAdminResultWithLog(Request $request, $data=[], $code=0, $message='')
+    public function jsonAdminResultWithLog(Request $request, $data = [], $code = 0, $message='')
     {
         if ($code != 0) {
             $result = [
