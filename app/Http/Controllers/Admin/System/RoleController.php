@@ -29,47 +29,48 @@ class RoleController extends Controller
      * @Versions("v1")
      *
     @Response(200, body={
-    "code":0,
-    "message":"success",
-    "roles":{
-    {
-    "id": 2,
-    "id_path": "",
-    "key": "Order",
-    "name": "订单",
-            "children": {
-                {
-                "id": 67,
-                "id_path": "2",
-                "key": "Member_Order_DeliveryController",
-                "name": "批量发货",
-                    "children": {
+        "code":0,
+        "message":"success",
+        "roles":{
+            {
+                "id": 2,
+                "id_path": "",
+                "key": "Order",
+                "name": "订单",
+                "children": {
+                    {
+                        "id": 67,
+                        "id_path": "2",
+                        "key": "Member_Order_DeliveryController",
+                        "name": "批量发货",
+                        "children": {
                             {
-                            "id": 68,
-                            "id_path": "2|67",
-                            "key": "@Get:api_delivery_statListPage",
-                            "name": "发货记录",
+                                "id": 68,
+                                "id_path": "2|67",
+                                "key": "@Get:api_delivery_statListPage",
+                                "name": "发货记录",
                             }
+                        }
                     }
                 }
             }
-         }
-      }
+        }
     },
     attributes={
-    @Attribute("roles", type="string", description="全部预设角色集合", sample="[]",required=true),
+        @Attribute("roles", type="string", description="全部预设角色集合", sample="[]",required=true),
     })
      */
     public function total(Request $request,Role $role)
     {
-        $data = $role->select(['id','name'])->get();
+        $data = $role->select(['id', 'name'])->get();
 
-        if (! empty($data) )
+        if (!empty($data)) {
             foreach ($data as $k => &$val) {
                 if ($val['name'] == 'admin') {
                     $val['name'] = '超级管理员';
                 }
             }
+        }
 
         return $this->jsonAdminResultWithLog($request, [
             'roles' => $data
@@ -90,36 +91,35 @@ class RoleController extends Controller
         })
      *
      * @Response(200, body={
-            "code":0,
-            "message":"success",
-            "data":{
-                "total": 10,
-                "roles": {
-                    {
-                        "id": 2,
-                        "name": "\u3010\u7ba1\u7406\u5458\u3011\u7cfb\u7edf",
-                        "permission": "[]",
-                        "created_at": "2019-02-25 09:47:19",
-                        "updated_at": "2019-07-11 10:20:13"
-                    }
+        "code":0,
+        "message":"success",
+        "data":{
+            "total": 10,
+            "roles": {
+                {
+                    "id": 2,
+                    "name": "\u3010\u7ba1\u7406\u5458\u3011\u7cfb\u7edf",
+                    "permission": "[]",
+                    "created_at": "2019-02-25 09:47:19",
+                    "updated_at": "2019-07-11 10:20:13"
                 }
             }
-        },
-        attributes={
-            @Attribute("total", type="int", description="总条数", sample=10,required=true),
-            @Attribute("roles", type="string", description="角色列表集合", sample="[]",required=true),
-        })
+        }
+    },
+    attributes={
+        @Attribute("total", type="int", description="总条数", sample=10,required=true),
+        @Attribute("roles", type="string", description="角色列表集合", sample="[]",required=true),
+    })
      */
-    public function index(Request $request,Role $role)
+    public function index(Request $request, Role $role)
     {
-        //
         $params = $request->all();
         $data = $role
             ->where('name', 'like', "%{$params['name']}%")
             ->where('name', '!=', 'admin')
             ->paginate(15, ['*'], 'page', $params['page']);
 
-        return $this->jsonAdminResultWithLog($request,[
+        return $this->jsonAdminResultWithLog($request, [
             'total' => $data->total(),
             'roles' => $data->items()
         ]);
@@ -140,14 +140,13 @@ class RoleController extends Controller
         })
      *
      * @Response(200, body={
-        "code":0,
-        "message":"success",
-        "data":{}
+            "code": 0,
+            "message": "success",
+            "data": {}
         })
      */
     public function store(Request $request, Role $role)
     {
-        //
         $params = $request->all();
         $result = $role->insert([
             'name' => $params['name'],
@@ -159,7 +158,7 @@ class RoleController extends Controller
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 
@@ -179,17 +178,16 @@ class RoleController extends Controller
         })
      *
      * @Response(200, body={
-            "code":0,
-            "message":"success",
-            "data":{}
+            "code": 0,
+            "message": "success",
+            "data": {}
         })
      */
     public function update(Request $request, $id, Role $role)
     {
-        //
         $params = $request->all();
         if ($id <= 0) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
         $result = $role->where(['id' => $id])->update([
             'name' => $params['name'],
@@ -213,26 +211,25 @@ class RoleController extends Controller
      * @Delete("/lv/roles/{?id}")
      *
      * @Response(200, body={
-            "code":0,
-            "message":"success",
-            "data":{}
+            "code": 0,
+            "message": "success",
+            "data": {}
         })
      */
-    public function destroy(Request $request,$id, Role $role,User $user)
+    public function destroy(Request $request, $id, Role $role, User $user)
     {
-        //
         if ($id <= 0) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
-        $counts = $user->where('roles','["'.$id.'"]')->count();
+        $counts = $user->where('roles', '["'.$id.'"]')->count();
         if ($counts){
-            return $this->jsonAdminResultWithLog($request,[], 10001,'该角色下已有用户，请先删除用户');
+            return $this->jsonAdminResultWithLog($request, [], 10001,'该角色下已有用户，请先删除用户');
         }
         $result = $role->where(['id' => $id])->delete();
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 10001);
+            return $this->jsonAdminResultWithLog($request, [], 10001);
         }
     }
 
@@ -251,26 +248,27 @@ class RoleController extends Controller
         })
      *
      * @Response(200, body={
-            "code":0,
-            "message":"success",
-            "data":{},
+            "code": 0,
+            "message": "success",
+            "data": {},
         })
      */
-    public function batchDestroy(Request $request, Role $role,User $user)
+    public function batchDestroy(Request $request, Role $role, User $user)
     {
         $params = $request->all();
+
         $ids = explode(',', $params['ids']);
         if (empty($params['ids'])) {
-            return $this->jsonAdminResultWithLog($request,[], 10002);
+            return $this->jsonAdminResultWithLog($request, [], 10002);
         }
         foreach ($ids as $value) {
             $newIds[] = '["'.$value.'"]';;
         }
-       $users =  $user->whereIn('roles',$newIds)->orderBy('roles','asc')->get(['roles']);
+        $users = $user->whereIn('roles', $newIds)->orderBy('roles', 'asc')->get(['roles']);
         if (count($users)){
             $role_id = json_decode($users[0]['roles'],true)[0];
-            $name = $role->where('id',$role_id)->value('name');
-            return $this->jsonAdminResultWithLog($request,[], 10002,'该'.$name.'角色下已有用户，请先删除用户');
+            $name = $role->where('id', $role_id)->value('name');
+            return $this->jsonAdminResultWithLog($request, [], 10002,'该'.$name.'角色下已有用户，请先删除用户');
         }
         $result = $role->whereIn('id', $ids)->delete();
 

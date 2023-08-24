@@ -203,10 +203,7 @@ class IndexController extends Controller
             return $this->jsonAdminResult([],10001,'参数错误');
         }
 
-        $res = $mProperty->where('id', $id)->update([
-            'is_del' => 1,
-            'updated_at' => date('Y-m-d H:i:s')
-        ]);
+        $res = $mProperty->where('id', $id)->delete();
 
         if ($res !== false) {
             return $this->jsonAdminResultWithLog($request);

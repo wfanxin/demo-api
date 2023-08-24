@@ -3,12 +3,9 @@
 namespace App\Http\Requests\Web;
 
 use App\Http\Requests\Base;
-use App\Http\Traits\ResponseTrait;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Session;
-use App\Facades\LvRedisFacade as Redis;
+use Illuminate\Support\Facades\Redis;
 
 class Register extends Base
 {
@@ -66,7 +63,7 @@ class Register extends Base
         $verifyCode = Redis::get($verifyCodeMailKey);
 
         if ($this->input('verify_code') !== $verifyCode) {
-            throw new HttpResponseException(response()->json(['code'=>'10001','message'=>'验证码错误或过期'], 201));
+            throw new HttpResponseException(response()->json(['code' => '10001', 'message' => '验证码错误或过期'], 201));
         }
 
         return $this->all();

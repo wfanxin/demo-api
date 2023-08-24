@@ -2,13 +2,9 @@
 
 namespace App\Http\Middleware;
 
-use App\Facades\PermissionFacade;
-use App\Model\Admin\Permission;
-use App\Model\Admin\User;
 use App\Model\Member\Member;
-use App\Model\Member\MemberPermission;
 use Closure;
-use App\Facades\LvRedisFacade as Redis;
+use Illuminate\Support\Facades\Redis;
 
 class MemberToken
 {
@@ -22,7 +18,7 @@ class MemberToken
     public function handle($request, Closure $next)
     {
         try {
-            /// 验证token
+            // 验证token
             if ( $_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
                 return $next($request);
             }
@@ -36,9 +32,9 @@ class MemberToken
                 ]);
             }
 
-            list($auth, $time, $userId) = explode("|", $token);
+            list($auth, $time, $userId) = explode('|', $token);
 
-            $mTokenKey = sprintf($redisKey['m_token']['key'], $userId,$auth);
+            $mTokenKey = sprintf($redisKey['m_token']['key'], $userId, $auth);
             $mineToken = Redis::get($mTokenKey);
             if (empty($mineToken) || $mineToken != $token) {
                 return response()->json([

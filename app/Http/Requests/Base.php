@@ -18,7 +18,7 @@ class Base extends FormRequest
         if ($validator->failed()) {
             $errors = $validator->errors();
             foreach ($errors->messages() as $val) {
-                throw new HttpResponseException(response()->json(['code'=>'10001','message'=>$val[0]], 201));
+                throw new HttpResponseException(response()->json(['code' => '10001', 'message' => $val[0]], 201));
                 break;
             }
         }
