@@ -84,6 +84,7 @@ class User extends Model
         $nav = array_merge($nav, $permissions);
         $nav = array_unique($nav);
         sort($nav);
+
         // 栏目path
         $pathTmp = DB::table('permissions')
             ->whereIn('id', $nav)

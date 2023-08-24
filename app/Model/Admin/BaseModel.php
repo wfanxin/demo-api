@@ -13,36 +13,35 @@ class BaseModel extends Model
      * @param array $data 数据集合
      * @return bool
      */
-    public function InsertOnDuiplicate($fields=[], $data=[])
+    public function InsertOnDuiplicate($fields = [], $data = [])
     {
         if (empty($fields) || empty($data)) {
             return false;
         }
 
         $sqlTpl = "INSERT INTO `{$this->table}`(`%s`) VALUES %s ON DUPLICATE KEY UPDATE %s";
-        $values="";
+        $values = '';
         foreach ($data as $k => $val) {
-            $values .= "(";
+            $values .= '(';
             foreach ($fields as $field) {
                 $values .= "'{$val[$field]}',";
             }
-            $values = rtrim($values, ",");
-            $values .= "),";
+            $values = rtrim($values, ',');
+            $values .= '),';
         }
-        $values = rtrim($values, ",");
+        $values = rtrim($values, ',');
 
-        $updates = "";
+        $updates = '';
         foreach ($fields as $field) {
             $updates .= "`{$field}`=VALUES (`{$field}`),";
         }
-        $updates = rtrim($updates, ",");
+        $updates = rtrim($updates, ',');
 
         $sql = sprintf($sqlTpl,
             implode("`,`", $fields),
             $values,
             $updates);
 
-        ///
         return DB::statement($sql);
     }
 }

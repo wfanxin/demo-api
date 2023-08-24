@@ -9,7 +9,7 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 class Controller extends BaseController
 {
     use DispatchesJobs, ValidatesRequests;
-    ///api结果格式化
+    // api结果格式化
     use \App\Http\Traits\ResponseTrait;
     use \App\Http\Traits\EncodeTrait;
 
@@ -17,7 +17,7 @@ class Controller extends BaseController
      * 密码盐值
      * @var string
      */
-    protected $_salt = "";
+    protected $_salt = '';
 
     public $userId = 0;
 

@@ -150,7 +150,7 @@ class Permission extends BaseModel
 
     /**
      * 刷新权限
-     * @return BaseModel|int
+     * @return int
      * @throws \ReflectionException
      */
     public function refresh()
