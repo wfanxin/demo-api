@@ -52,10 +52,12 @@ class IndexController extends Controller
             $where[] = ['address', 'like', '%' . $params['address'] . '%'];
         }
 
+        $orderField = 'number';
+        $sort = 'asc';
         $page = $params['page'] ?? 1;
         $pageSize = $params['pageSize'] ?? config('global.page_size');
         $data = $mProperty->where($where)
-            ->orderBy('id', 'desc')
+            ->orderByRaw('CONVERT(' . $orderField . ', SIGNED) ' . $sort) // 字符串转整数排序
             ->paginate($pageSize, ['*'], 'page', $page);
 
         // 域名前缀
