@@ -104,7 +104,7 @@ class PermissionController extends Controller
     {
         $list = $permission->getPermissions();
 
-        return $this->jsonAdminResultWithLog($request,[
+        return $this->jsonAdminResultWithLog($request, [
             'list' => $list
         ]);
     }
@@ -127,6 +127,8 @@ class PermissionController extends Controller
     public function update(Request $request, Permission $permission)
     {
         $code = $permission->refresh();
+
+        unset($request->userId); // 没这个参数不会记录操作log
         if ($code == 10000) { // 成功
             $redisKey = config('redisKey');
             $rbacKey = sprintf($redisKey['rbac']['key'], $request->userId);
@@ -134,7 +136,7 @@ class PermissionController extends Controller
 
             return $this->jsonAdminResultWithLog($request);
         } else {
-            return $this->jsonAdminResultWithLog($request,[], 20001);
+            return $this->jsonAdminResultWithLog($request, [], 20001);
         }
     }
 
@@ -143,6 +145,7 @@ class PermissionController extends Controller
      * @name 编辑权限
      * @Patch("/lv/permissions/{?id}")
      * @Versions("v1")
+     * @PermissionWhiteList
      *
     @Request("id={id}&is_show={is_show}", contentType="application/x-www-form-urlencoded", attributes={
     @Attribute("id", type="int", required=true, description="权限id", sample=1),
@@ -163,6 +166,7 @@ class PermissionController extends Controller
 
         $result = $permission->where('id', $id)->update(['is_show' => $params['is_show']]);
 
+        unset($request->userId); // 没这个参数不会记录操作log
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {

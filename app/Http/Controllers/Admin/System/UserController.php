@@ -183,11 +183,11 @@ class UserController extends Controller
     }
 
     /**
-     * 编辑用户信息
-     * @name 更新用户信息
+     * 编辑用户
+     * @name 编辑用户
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      *
      * @Put("/lv/users/{?id}")
@@ -260,7 +260,7 @@ class UserController extends Controller
      * @Versions("v1")
      * @PermissionWhiteList
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      *
      @Request("old_password={old_password}&password={password}", contentType="application/x-www-form-urlencoded", attributes={
@@ -295,8 +295,8 @@ class UserController extends Controller
     }
 
     /**
-     * 删除指定用户信息
-     * @name 删除指定用户信息
+     * 删除用户
+     * @name 删除用户
      *
      * @param int $id
      * @return \Illuminate\Http\Response
@@ -330,10 +330,10 @@ class UserController extends Controller
     }
 
     /**
-     * 批量删除用户信息
-     * @name 批量删除用户信息
+     * 批量删除用户
+     * @name 批量删除用户
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      *
      * @Delete("/lv/users/batch")

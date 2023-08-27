@@ -234,8 +234,8 @@ class RoleController extends Controller
     }
 
     /**
-     * 批量删除
-     * @name 批量删除
+     * 批量删除角色
+     * @name 批量删除角色
      * @param Request $request
      * @param Role $role
      * @return \Illuminate\Http\JsonResponse

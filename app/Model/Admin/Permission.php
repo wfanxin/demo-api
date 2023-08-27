@@ -302,7 +302,6 @@ class Permission extends BaseModel
                     foreach ($methods as $method) {
                         $comment = $method->getDocComment();
                         if (preg_match("/@name .*/i", $comment, $match) && preg_match("/@(post|get|put|patch|delete|copy|head|options|link|unlink|purge|lock|unlock|propfind|view)\(.*\).*/i", $comment, $matchMethod) ) {
-
                             $isWhite = preg_match("/@PermissionWhiteList/i", $comment, $isWhite)? 1: 0;
                             $name = trim(str_replace("@name ", "", $match[0]));
                             $method = trim($matchMethod[0]);

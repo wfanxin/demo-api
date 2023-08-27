@@ -55,7 +55,7 @@ class LogController extends Controller
         @Attribute("logs", type="string", description="操作记录集合", sample="[]",required=true),
     })
      */
-    public function index(Request $request,Log $log)
+    public function index(Request $request, Log $log)
     {
         $params = $request->all();
         list($list, $data) = $log->getList($params);

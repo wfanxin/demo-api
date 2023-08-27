@@ -24,7 +24,7 @@ class TokenController extends Controller
 
     /**
      * 登录（获取令牌，将令牌保存至客户端。在需要校验身份的请求的头信息里，添加：x-Token="授权的令牌"）
-     * @name 登录（获取令牌，将令牌保存至客户端。在需要校验身份的请求的头信息里，添加：x-Token="授权的令牌"）
+     * @name 登录
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
@@ -99,7 +99,6 @@ class TokenController extends Controller
         Redis::expire($xTokenKey, $redisKey['x_token']['ttl']);
         Redis::hmset($userInfoKey, $userInfo->toArray());
 
-        unset($request->userId); // 没这个参数不会记录操作log
         return $this->jsonAdminResultWithLog($request, [
             'token' => $token
         ]);
@@ -107,7 +106,7 @@ class TokenController extends Controller
 
     /**
      * 退出登录（销毁授权令牌）
-     * @name 退出登录（销毁授权令牌）
+     * @name 退出登录
      *
      * @param  int  $id
      * @return \Illuminate\Http\Response
@@ -129,7 +128,6 @@ class TokenController extends Controller
 
         $result = $this->clearXtoken($request->userId);
         if ($result) {
-            unset($request->userId); // 没这个参数不会记录操作log
             return $this->jsonAdminResultWithLog($request);
         } else {
             return $this->jsonAdminResultWithLog($request, [], 10001);
