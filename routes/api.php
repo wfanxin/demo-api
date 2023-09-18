@@ -64,3 +64,10 @@ $dingoApi->version("v1", [
 });
 
 
+$dingoApi->version("v1", [
+    "middleware" => ["CrossHttp"]
+], function ($dingoApi) {
+    // 用户登录
+    $dingoApi->post("api/user/login", \App\Http\Controllers\Api\UserController::class."@login")->name("api.user.login");
+});
+

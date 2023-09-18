@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
  * 后台角色管理
  * @name 角色管理
  * Class RoleController
- * @package App\Http\Controllers\System
+ * @package App\Http\Controllers\Admin\System
  *
  * @Resource("roles")
  */

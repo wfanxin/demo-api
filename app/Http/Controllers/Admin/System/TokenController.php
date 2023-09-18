@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Redis;
  * 用户授权令牌
  * @name 用户授权令牌
  * Class TokenController
- * @package App\Http\Controllers
+ * @package App\Http\Controllers\Admin\System
  *
  * @PermissionWhiteList
  * @Resource("tokens")

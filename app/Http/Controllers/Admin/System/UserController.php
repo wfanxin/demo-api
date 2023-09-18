@@ -10,7 +10,7 @@ use App\Model\Admin\User;
  * 用户管理
  * @name 用户管理
  * Class UserController
- * @package App\Http\Controllers\System
+ * @package App\Http\Controllers\Admin\System
  *
  * @Resource("users")
  */
