@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Redis;
  * 后台权限管理
  * @name 权限管理
  * Class PermissionController
- * @package App\Http\Controllers\Admin\System
+ * @package App\Http\Controllers\System
  */
 class PermissionController extends Controller
 {

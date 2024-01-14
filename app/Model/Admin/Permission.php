@@ -197,6 +197,7 @@ class Permission extends BaseModel
 
         // 更新数据库权限信息
         $nav_delete_list = []; // 需要删除的一级目录
+        $controller_reserve_list = []; // 需要保留的二级目录
         foreach ($permissionList as $permissions) {
             $tmp = explode('_', $permissions['path']);
             $nav = $tmp['1'];
@@ -208,6 +209,7 @@ class Permission extends BaseModel
 
             // 刷新二级权限
             $path = $permissions['path'];
+            $controller_reserve_list[] = $path;
             $this->_refreshMysql(['p_id', 'name', 'is_white', 'path', 'id_path', 'created_at', 'updated_at'], 'path', [
                 0 => [
                     'p_id' => $pId,
@@ -249,7 +251,7 @@ class Permission extends BaseModel
             }
         }
 
-        // 删除无用的权限
+        // 删除无用的一级权限及子权限
         $temp_path = array_keys($navList);
         $info_list = $this->where('p_id', 0)->whereNotIn('path', $temp_path)->get();
         $info_list = json_decode(json_encode($info_list), true);
@@ -262,6 +264,17 @@ class Permission extends BaseModel
                 $this->where('id', $info['id'])->orWhere('p_id', $info['id'])->orWhere('id_path', 'like', "0|{$info['id']}|%")->delete();
             }
         }
+
+        // 删除无用的二级权限及子权限
+        $info_list = $this->where('p_id', array_column($navList, 'id'))->whereNotIn('path', $controller_reserve_list)->get();
+        $info_list = json_decode(json_encode($info_list), true);
+        if (!empty($info_list)) {
+            $this->whereIn('id', array_column($info_list, 'id'))->OrWhereIn('p_id', array_column($info_list, 'id'))->delete();
+        }
+
+        // 设置栏目
+        $nav_show_list = config('admin.nav_show_list');
+        $this->whereIn('path', $nav_show_list)->update(['is_show' => 1]);
 
         return 10000;
     }
