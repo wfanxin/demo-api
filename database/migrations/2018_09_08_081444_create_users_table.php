@@ -35,7 +35,7 @@ class CreateUsersTable extends Migration
             'created_at' => date("Y-m-d H:i:s"),
             'updated_at' => date("Y-m-d H:i:s"),
 	        'avatar' => '',
-            'roles' => json_encode([1])
+            'roles' => json_encode([strval(1)])
         ]);
     }
 

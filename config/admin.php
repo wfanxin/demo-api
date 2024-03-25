@@ -6,18 +6,27 @@
 return [
     // sort唯一
     'nav' => [
-        'Welcome' => [
-            'sort' => 1,
-            'alias' => '首页'
-        ],
-        'Property' => [
+        'Mobile' => [
             'sort' => 2,
-            'alias' => '物业管理'
+            'alias' => '网站管理'
         ],
         'System' => [
             'sort' => 3,
             'alias' => '系统管理'
         ],
+    ],
+    // 栏目
+    'nav_show_list' => [
+        '@Get:lv_mobile_slide_list',
+        '@Get:lv_mobile_article_list',
+        '@Get:lv_mobile_config_list',
+        '@Get:lv_mobile_member_list',
+        '@Get:lv_mobile_payRecord_list',
+        '@Get:lv_mobile_leave_list',
+        '@Get:lv_permissions',
+        '@Get:lv_roles',
+        '@Get:lv_users',
+//        '@Get:lv_logs'
     ],
     'aliyun_oss' => [
         'AccessKeyId' => '',

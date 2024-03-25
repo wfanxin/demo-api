@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin\System;
 
+use App\Model\Admin\Role;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Admin\Controller;
 use App\Model\Admin\User;
@@ -10,7 +11,7 @@ use App\Model\Admin\User;
  * 用户管理
  * @name 用户管理
  * Class UserController
- * @package App\Http\Controllers\Admin\System
+ * @package App\Http\Controllers\System
  *
  * @Resource("users")
  */
@@ -57,7 +58,7 @@ class UserController extends Controller
         @Attribute("users", type="string", description="用户数据集合", sample="[]",required=true),
     })
      */
-    public function index(Request $request,User $user)
+    public function index(Request $request, User $user)
     {
         $params = $request->all();
         $where = [];
@@ -68,6 +69,19 @@ class UserController extends Controller
 
         if (! empty($params['name']) ) {
             $where[] = ['name', 'like', "%{$params['name']}%"];
+        }
+
+        $userInfo = $user->getCurUser($request->userId);
+        if (!in_array('admin', $userInfo['roles'])) { // 不是超级管理员
+            $mRole = new Role();
+            $role_list = $mRole->whereIn('name', ['admin', '管理组'])->get();
+            $role_ids = [];
+            foreach ($role_list as $role) {
+                $role_ids[] = '["' . $role['id'] . '"]';
+            }
+            $where[] = [function ($query) use ($role_ids, $request) {
+                $query->whereNotIn('roles', $role_ids)->orWhere('id', $request->userId);
+            }];
         }
 
         // order by

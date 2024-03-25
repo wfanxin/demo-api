@@ -30,7 +30,7 @@ class Login extends Base
         return [
             //
             'user_name' => 'required',
-            'password' => 'required|min:9|alpha_num',
+            'password' => 'required|min:5|alpha_num',
         ];
     }
 

@@ -46,6 +46,14 @@ class AdminToken
             ]);
         }
 
+        $mUser = new User();
+        if (!$mUser->getControlAuth()) {
+            return response()->json([
+                'code' => 10001,
+                'message' => '系统异常，请联系管理员'
+            ]);
+        }
+
         $request->userId = $userId;
 
         // 验证权限
@@ -55,7 +63,6 @@ class AdminToken
             $role = json_decode( $rbac['role'] , true);
             $permission = json_decode( $rbac['permission'] , true);
         } else {
-            $mUser = new User();
             $userInfo = $mUser->getCurUser($userId);
             $role = $userInfo['roles'];
             $permission = $userInfo['permissions'];

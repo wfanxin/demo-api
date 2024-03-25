@@ -11,7 +11,7 @@ use Illuminate\Http\Request;
  * 后台角色管理
  * @name 角色管理
  * Class RoleController
- * @package App\Http\Controllers\Admin\System
+ * @package App\Http\Controllers\System
  *
  * @Resource("roles")
  */
@@ -68,6 +68,16 @@ class RoleController extends Controller
             foreach ($data as $k => &$val) {
                 if ($val['name'] == 'admin') {
                     $val['name'] = '超级管理员';
+                }
+            }
+        }
+
+        $mUser = new User();
+        $userInfo = $mUser->getCurUser($request->userId);
+        if (!in_array('admin', $userInfo['roles'])) { // 不是超级管理员
+            foreach ($data as $key => $value) {
+                if (in_array($value['name'], ['超级管理员', '管理组'])) {
+                    unset($data[$key]);
                 }
             }
         }
