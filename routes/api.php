@@ -22,18 +22,22 @@ $dingoApi->version("v1", [
     // 上传文件
     $dingoApi->post("service/uploadFile", \App\Http\Controllers\Admin\ServiceController::class."@uploadFile")->name("service.uploadFile");
 
+    // 选项配置
+    $dingoApi->get("website/option/detail", \App\Http\Controllers\Admin\Website\OptionController::class."@detail")->name("website.option.detail");
+    $dingoApi->post("website/option/edit", \App\Http\Controllers\Admin\Website\OptionController::class."@edit")->name("website.option.edit");
+
     // 轮播图管理
-    $dingoApi->get("mobile/slide/list", \App\Http\Controllers\Admin\Mobile\SlideController::class."@list")->name("mobile.slide.list");
-    $dingoApi->post("mobile/slide/add", \App\Http\Controllers\Admin\Mobile\SlideController::class."@add")->name("mobile.slide.add");
-    $dingoApi->post("mobile/slide/edit", \App\Http\Controllers\Admin\Mobile\SlideController::class."@edit")->name("mobile.slide.edit");
-    $dingoApi->post("mobile/slide/del", \App\Http\Controllers\Admin\Mobile\SlideController::class."@del")->name("mobile.slide.del");
+    $dingoApi->get("website/slide/list", \App\Http\Controllers\Admin\Website\SlideController::class."@list")->name("website.slide.list");
+    $dingoApi->post("website/slide/add", \App\Http\Controllers\Admin\Website\SlideController::class."@add")->name("website.slide.add");
+    $dingoApi->post("website/slide/edit", \App\Http\Controllers\Admin\Website\SlideController::class."@edit")->name("website.slide.edit");
+    $dingoApi->post("website/slide/del", \App\Http\Controllers\Admin\Website\SlideController::class."@del")->name("website.slide.del");
 
     // 文章管理
-    $dingoApi->get("mobile/article/list", \App\Http\Controllers\Admin\Mobile\ArticleController::class."@list")->name("mobile.article.list");
-    $dingoApi->post("mobile/article/add", \App\Http\Controllers\Admin\Mobile\ArticleController::class."@add")->name("mobile.article.add");
-    $dingoApi->post("mobile/article/edit", \App\Http\Controllers\Admin\Mobile\ArticleController::class."@edit")->name("mobile.article.edit");
-    $dingoApi->post("mobile/article/del", \App\Http\Controllers\Admin\Mobile\ArticleController::class."@del")->name("mobile.article.del");
-    $dingoApi->get("mobile/article/detail", \App\Http\Controllers\Admin\Mobile\ArticleController::class."@detail")->name("mobile.article.detail");
+    $dingoApi->get("website/article/list", \App\Http\Controllers\Admin\Website\ArticleController::class."@list")->name("website.article.list");
+    $dingoApi->post("website/article/add", \App\Http\Controllers\Admin\Website\ArticleController::class."@add")->name("website.article.add");
+    $dingoApi->post("website/article/edit", \App\Http\Controllers\Admin\Website\ArticleController::class."@edit")->name("website.article.edit");
+    $dingoApi->post("website/article/del", \App\Http\Controllers\Admin\Website\ArticleController::class."@del")->name("website.article.del");
+    $dingoApi->get("website/article/detail", \App\Http\Controllers\Admin\Website\ArticleController::class."@detail")->name("website.article.detail");
 
     // 会员管理
     $dingoApi->get("mobile/member/list", \App\Http\Controllers\Admin\Mobile\MemberController::class."@list")->name("mobile.member.list");

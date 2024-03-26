@@ -6,8 +6,8 @@
 return [
     // sort唯一
     'nav' => [
-        'Mobile' => [
-            'sort' => 2,
+        'Website' => [
+            'sort' => 1,
             'alias' => '网站管理'
         ],
         'System' => [
@@ -15,19 +15,28 @@ return [
             'alias' => '系统管理'
         ],
     ],
+
     // 栏目
     'nav_show_list' => [
-        '@Get:lv_mobile_slide_list',
-        '@Get:lv_mobile_article_list',
-        '@Get:lv_mobile_config_list',
-        '@Get:lv_mobile_member_list',
-        '@Get:lv_mobile_payRecord_list',
-        '@Get:lv_mobile_leave_list',
+        // 网站管理
+        '@Get:lv_website_option_detail',
+        '@Get:lv_website_slide_list',
+        '@Get:lv_website_article_list',
+
+        // 系统管理
         '@Get:lv_permissions',
         '@Get:lv_roles',
         '@Get:lv_users',
-//        '@Get:lv_logs'
+        '@Get:lv_logs'
     ],
+
+    // 选项配置
+    'option_list' => [
+        'sex' => ['name' => '性别', 'value' => ''],
+        'whether' => ['name' => '是否', 'value' => '']
+    ],
+
+    // 阿里云oss配置
     'aliyun_oss' => [
         'AccessKeyId' => '',
         'AccessKeySecret' => '',

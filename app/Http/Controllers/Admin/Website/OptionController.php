@@ -1,17 +1,16 @@
 <?php
 
-namespace App\Http\Controllers\Admin\Mobile;
+namespace App\Http\Controllers\Admin\Website;
 
 use App\Http\Controllers\Admin\Controller;
 use App\Http\Traits\FormatTrait;
 use App\Model\Admin\Config;
-use App\Model\Admin\Product;
 use Illuminate\Http\Request;
 
 /**
  * @name 选项管理
  * Class OptionController
- * @package App\Http\Controllers\Admin\Mobile
+ * @package App\Http\Controllers\Admin\Website
  *
  */
 class OptionController extends Controller
@@ -20,7 +19,7 @@ class OptionController extends Controller
 
     /**
      * @name 选项配置
-     * @Get("/lv/base/option/detail")
+     * @Get("/lv/website/option/detail")
      * @Version("v1")
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
@@ -33,22 +32,25 @@ class OptionController extends Controller
         $where = [];
         $where[] = ['name', '=', 'option'];
         $content = $mConfig->where($where)->value('content');
-        if (empty($content)) {
-            $content = [];
-            $content['export_port'] = ['name' => '出口港', 'value' => ''];
-            $content['destination_port'] = ['name' => '目的港', 'value' => ''];
-        } else {
+
+        $data = config('admin.option_list');
+        if (!empty($content)) {
             $content = json_decode($content, true);
+            foreach ($data as $key => $value) {
+                if (isset($content[$key])) {
+                    $data[$key] = $content[$key];
+                }
+            }
         }
 
         return $this->jsonAdminResult([
-            'data' => $content
+            'data' => $data
         ]);
     }
 
     /**
      * @name 编辑选项
-     * @Post("/lv/base/option/edit")
+     * @Post("/lv/website/option/edit")
      * @Version("v1")
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse

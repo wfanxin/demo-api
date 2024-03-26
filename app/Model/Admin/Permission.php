@@ -266,7 +266,7 @@ class Permission extends BaseModel
         }
 
         // 删除无用的二级权限及子权限
-        $info_list = $this->where('p_id', array_column($navList, 'id'))->whereNotIn('path', $controller_reserve_list)->get();
+        $info_list = $this->whereIn('p_id', array_column($navList, 'id'))->whereNotIn('path', $controller_reserve_list)->get();
         $info_list = json_decode(json_encode($info_list), true);
         if (!empty($info_list)) {
             $this->whereIn('id', array_column($info_list, 'id'))->OrWhereIn('p_id', array_column($info_list, 'id'))->delete();
