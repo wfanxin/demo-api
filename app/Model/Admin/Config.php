@@ -2,11 +2,13 @@
 
 namespace App\Model\Admin;
 
+use App\Http\Traits\FormatTrait;
 use Illuminate\Database\Eloquent\Model;
 
 class Config extends Model
 {
-    //
+    use FormatTrait;
+    public $table = 'configs';
 
     /**
      * 获取选项配置

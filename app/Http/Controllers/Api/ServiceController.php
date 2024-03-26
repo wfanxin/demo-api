@@ -66,7 +66,7 @@ class ServiceController extends Controller
             "43" => "IP地址限制",
             "50" => "内容含有敏感词"
         );
-        $smsapi = "http://api.smsbao.com/";
+        $smsapi = 'http://api.smsbao.com/';
         $user = env('SMS_USER', ''); //短信平台帐号
         $pass = md5(env('SMS_PASS', '')); //短信平台密码
         $content = '短信验证码：' . $code;//要发送的短信内容

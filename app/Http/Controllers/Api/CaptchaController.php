@@ -36,7 +36,7 @@ class CaptchaController extends Controller
     }
 
     /**
-     * 校验
+     * 校验验证码
      */
     public function check(Request $request, Redis $redis)
     {

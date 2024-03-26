@@ -15,7 +15,7 @@ class IndexController extends Controller
     use FormatTrait;
 
     /**
-     * 幻灯片和文章
+     * 幻灯片
      * @param Request $request
      */
     public function list(Request $request, Slide $mSlide, Article $mArticle)
@@ -30,13 +30,7 @@ class IndexController extends Controller
             $slide_list[$key]['image'] = $urlPre . $value['image'];
         }
 
-        $article_list = $mArticle->get(['id', 'title', 'image']);
-        $article_list = $this->dbResult($article_list);
-        foreach ($article_list as $key => $value) {
-            $article_list[$key]['image'] = $urlPre . $value['image'];
-        }
-
-        return $this->jsonAdminResult(['slide_list' => $slide_list, 'article_list' => $article_list]);
+        return $this->jsonAdminResult(['slide_list' => $slide_list]);
     }
 
     /**
