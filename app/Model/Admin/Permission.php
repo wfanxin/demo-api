@@ -3,10 +3,13 @@
 namespace App\Model\Admin;
 
 use App\Facades\PermissionFacade;
+use App\Http\Traits\FormatTrait;
 use Illuminate\Support\Facades\DB;
 
 class Permission extends BaseModel
 {
+    use FormatTrait;
+
     public $table = 'permissions';
     public $db = '';
 
@@ -51,10 +54,9 @@ class Permission extends BaseModel
      * 获取权限
      * @return array|mixed
      */
-    public function getPermissions()
+    public function getPermissions($where = [])
     {
         $where[] = ['is_white', '=', 0];
-        $where[] = ['path', '!=', 'Welcome'];
         $permissions = $this->where($where)->orderBy('p_id', 'asc')->orderBy('id', 'asc')->get()->toArray();
 
         if (empty ($permissions)) {
@@ -440,5 +442,83 @@ class Permission extends BaseModel
         }
 
         return $result1 && $result2;
+    }
+
+    /**
+     * 获取权限查询条件
+     * @param array $params
+     * @return array
+     */
+    public function getPermissionWhere($params = []){
+        $p_id = $params['p_id'] ?? 0;
+        if (is_array($p_id)) {
+            $p_id = $p_id[count($p_id) - 1];
+        }
+        $ids = [];
+        $where = [];
+        if (empty($p_id)) { // 没有上级角色，则获取当前用户的角色
+            $mUser = new User();
+            $roles = $mUser->where('id', $params['userId'])->value('roles');
+            if (empty($roles)) {
+                $where[] = [function ($query) use ($ids) {
+                    $query->whereIn('id', $ids);
+                }];
+                return $where;
+            }
+
+            $roles = json_decode($roles, true);
+            if (empty($roles)) {
+                $where[] = [function ($query) use ($ids) {
+                    $query->whereIn('id', $ids);
+                }];
+                return $where;
+            }
+
+            $p_id = $roles[0];
+        }
+
+        if ($p_id == 1) { // 角色1，为超级管理员
+            return $where;
+        }
+
+        // 获取角色对应的权限
+        $mRole = new Role();
+        $permission = $mRole->where('id', $p_id)->value('permission');
+        if (empty($permission)) {
+            $where[] = [function ($query) use ($ids) {
+                $query->whereIn('id', $ids);
+            }];
+            return $where;
+        }
+
+        $permission = json_decode($permission, true);
+        if (empty($permission)) {
+            $where[] = [function ($query) use ($ids) {
+                $query->whereIn('id', $ids);
+            }];
+            return $where;
+        }
+
+        // 获取权限列表
+        $permission_list = $this->whereIn('id', $permission)->get();
+        $permission_list = $this->dbResult($permission_list);
+
+        foreach ($permission_list as $value) {
+            if (!in_array($value['id'], $ids)) {
+                $ids[] = $value['id'];
+            }
+
+            $id_path_arr = explode('|', $value['id_path']);
+            foreach ($id_path_arr as $v) {
+                if (!in_array($v, $ids)) {
+                    $ids[] = $v;
+                }
+            }
+        }
+
+        $where[] = [function ($query) use ($ids) {
+            $query->whereIn('id', $ids);
+        }];
+        return $where;
     }
 }

@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 class Member extends Model
 {
     use FormatTrait;
-    public $table = 'members';
+    public $table = 'users';
 
     /**
      * 删除会员

@@ -102,8 +102,16 @@ class PermissionController extends Controller
      */
     public function total(Request $request, Permission $permission)
     {
-        $list = $permission->getPermissions();
+        $params = $request->all();
+        $params['userId'] = $request->userId;
 
+        $where = [];
+        if (isset($params['action']) && $params['action'] == 'level') {
+            $where = $permission->getPermissionWhere($params);
+        }
+
+        $list = $permission->getPermissions($where);
+        
         return $this->jsonAdminResultWithLog($request, [
             'list' => $list
         ]);

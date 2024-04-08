@@ -17,6 +17,7 @@ class CreateRolesTable extends Migration
             $table->increments('id');
             $table->string('name', 255)->comment("角色名称");
             $table->mediumText('permission')->comment("权限集合");
+            $table->bigInteger('p_id')->default(0)->comment("上级id");
             $table->timestamps();
         });
 

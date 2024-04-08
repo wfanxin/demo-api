@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\System;
 
 use App\Http\Controllers\Admin\Controller;
+use App\Model\Admin\Permission;
 use App\Model\Admin\Role;
 use App\Model\Admin\User;
 use Illuminate\Http\Request;
@@ -60,24 +61,19 @@ class RoleController extends Controller
         @Attribute("roles", type="string", description="全部预设角色集合", sample="[]",required=true),
     })
      */
-    public function total(Request $request,Role $role)
+    public function total(Request $request, Role $role)
     {
-        $data = $role->select(['id', 'name'])->get();
+        $params = $request->all();
+        $params['userId'] = $request->userId;
+
+        $where = $role->getRoleWhere($params);
+
+        $data = $role->select(['id', 'name'])->where($where)->get();
 
         if (!empty($data)) {
             foreach ($data as $k => &$val) {
                 if ($val['name'] == 'admin') {
                     $val['name'] = '超级管理员';
-                }
-            }
-        }
-
-        $mUser = new User();
-        $userInfo = $mUser->getCurUser($request->userId);
-        if (!in_array('admin', $userInfo['roles'])) { // 不是超级管理员
-            foreach ($data as $key => $value) {
-                if (in_array($value['name'], ['超级管理员', '管理组'])) {
-                    unset($data[$key]);
                 }
             }
         }
@@ -124,9 +120,14 @@ class RoleController extends Controller
     public function index(Request $request, Role $role)
     {
         $params = $request->all();
+        $params['userId'] = $request->userId;
+
+        $where = $role->getRoleWhere($params);
+
         $data = $role
             ->where('name', 'like', "%{$params['name']}%")
             ->where('name', '!=', 'admin')
+            ->where($where)
             ->paginate(15, ['*'], 'page', $params['page']);
 
         return $this->jsonAdminResultWithLog($request, [
@@ -155,12 +156,33 @@ class RoleController extends Controller
             "data": {}
         })
      */
-    public function store(Request $request, Role $role)
+    public function store(Request $request, Role $role, Permission $permission)
     {
         $params = $request->all();
+        $params['userId'] = $request->userId;
+
+        $p_id = 0;
+        if (isset($params['p_id'])) {
+            if (empty($params['p_id'])) {
+                return $this->jsonAdminResultWithLog($request,[], 10001, '请选择上级角色');
+            }
+
+            if (is_numeric($params['p_id'])) {
+                $p_id = $params['p_id'];
+            } else {
+                $p_id = $params['p_id'][count($params['p_id']) - 1];
+            }
+
+            $where = $permission->getPermissionWhere($params);
+            $permission_list = $permission->whereIn('id', $params['rolePermissions'])->where($where)->get();
+            $permission_list = json_decode(json_encode($permission_list), true);
+            $params['rolePermissions'] = array_column($permission_list, 'id');
+        }
+
         $result = $role->insert([
             'name' => $params['name'],
             'permission' => json_encode($params['rolePermissions']),
+            'p_id' => $p_id,
             'created_at' => date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s')
         ]);
@@ -193,15 +215,37 @@ class RoleController extends Controller
             "data": {}
         })
      */
-    public function update(Request $request, $id, Role $role)
+    public function update(Request $request, $id, Role $role, Permission $permission)
     {
         $params = $request->all();
+        $params['userId'] = $request->userId;
+
         if ($id <= 0) {
             return $this->jsonAdminResultWithLog($request, [], 10002);
         }
+
+        $p_id = 0;
+        if (isset($params['p_id'])) {
+            if (empty($params['p_id'])) {
+                return $this->jsonAdminResultWithLog($request,[], 10001, '请选择上级角色');
+            }
+
+            if (is_numeric($params['p_id'])) {
+                $p_id = $params['p_id'];
+            } else {
+                $p_id = $params['p_id'][count($params['p_id']) - 1];
+            }
+
+            $where = $permission->getPermissionWhere($params);
+            $permission_list = $permission->whereIn('id', $params['rolePermissions'])->where($where)->get();
+            $permission_list = json_decode(json_encode($permission_list), true);
+            $params['rolePermissions'] = array_column($permission_list, 'id');
+        }
+
         $result = $role->where(['id' => $id])->update([
             'name' => $params['name'],
             'permission' => json_encode($params['rolePermissions']),
+            'p_id' => $p_id,
             'updated_at' => date('Y-m-d H:i:s')
         ]);
 
@@ -234,6 +278,9 @@ class RoleController extends Controller
         $counts = $user->where('roles', '["'.$id.'"]')->count();
         if ($counts){
             return $this->jsonAdminResultWithLog($request, [], 10001,'该角色下已有用户，请先删除用户');
+        }
+        if ($role->where('p_id', $id)->count() > 0) {
+            return $this->jsonAdminResultWithLog($request, [], 10001,'该角色已有下级角色，请先删除下级角色');
         }
         $result = $role->where(['id' => $id])->delete();
         if ($result) {
@@ -287,5 +334,25 @@ class RoleController extends Controller
         } else {
             return $this->jsonAdminResultWithLog($request,[], 10001);
         }
+    }
+
+    /**
+     * 获取角色选项
+     * @name 获取角色选项
+     * @Get("/lv/roles/getRoleOptions")
+     * @Versions("v1")
+     * @PermissionWhiteList
+     *
+     */
+    public function getRoleOptions(Request $request, Role $role)
+    {
+        $params = $request->all();
+        $params['userId'] = $request->userId;
+
+        $options = $role->getRoleOptions($params);
+
+        return $this->jsonAdminResultWithLog($request, [
+            'options' => $options
+        ]);
     }
 }

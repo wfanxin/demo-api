@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Model\Api\Member;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redis;
 
@@ -40,7 +41,8 @@ class ApiToken
         }
 
         $request->memId = $memId;
-        $info =  DB::table('members')->where('id', $memId)->first();
+        $mMember = new Member();
+        $info =  $mMember->where('id', $memId)->first();
         $info = json_decode(json_encode($info), true);
         if (empty($info)) {
             return response()->json([

@@ -58,10 +58,12 @@ class UserController extends Controller
         @Attribute("users", type="string", description="用户数据集合", sample="[]",required=true),
     })
      */
-    public function index(Request $request, User $user)
+    public function index(Request $request, User $user, Role $role)
     {
         $params = $request->all();
-        $where = [];
+        $params['userId'] = $request->userId;
+
+        $where = $role->getRoleUserWhere($params);
 
         if ($params['status'] > -1) {
             $where[] = ['status', '=', $params['status']];
@@ -69,19 +71,6 @@ class UserController extends Controller
 
         if (! empty($params['name']) ) {
             $where[] = ['name', 'like', "%{$params['name']}%"];
-        }
-
-        $userInfo = $user->getCurUser($request->userId);
-        if (!in_array('admin', $userInfo['roles'])) { // 不是超级管理员
-            $mRole = new Role();
-            $role_list = $mRole->whereIn('name', ['admin', '管理组'])->get();
-            $role_ids = [];
-            foreach ($role_list as $role) {
-                $role_ids[] = '["' . $role['id'] . '"]';
-            }
-            $where[] = [function ($query) use ($role_ids, $request) {
-                $query->whereNotIn('roles', $role_ids)->orWhere('id', $request->userId);
-            }];
         }
 
         // order by

@@ -39,11 +39,6 @@ $dingoApi->version("v1", [
     $dingoApi->post("website/article/del", \App\Http\Controllers\Admin\Website\ArticleController::class."@del")->name("website.article.del");
     $dingoApi->get("website/article/detail", \App\Http\Controllers\Admin\Website\ArticleController::class."@detail")->name("website.article.detail");
 
-    // 会员管理
-    $dingoApi->get("mobile/member/list", \App\Http\Controllers\Admin\Mobile\MemberController::class."@list")->name("mobile.member.list");
-    $dingoApi->post("mobile/member/edit", \App\Http\Controllers\Admin\Mobile\MemberController::class."@edit")->name("mobile.member.edit");
-    $dingoApi->post("mobile/member/del", \App\Http\Controllers\Admin\Mobile\MemberController::class."@del")->name("mobile.member.del");
-
     // 用户
     $dingoApi->post("users/checkName", \App\Http\Controllers\Admin\System\UserController::class."@checkName")->name("users.checkName");
     $dingoApi->put("users/pwd", \App\Http\Controllers\Admin\System\UserController::class."@changePwd")->name("users.changePwd");
@@ -58,6 +53,7 @@ $dingoApi->version("v1", [
 
     // 角色
     $dingoApi->get("roles/total", \App\Http\Controllers\Admin\System\RoleController::class."@total")->name("roles.total");
+    $dingoApi->get("roles/getRoleOptions", \App\Http\Controllers\Admin\System\RoleController::class."@getRoleOptions")->name("roles.getRoleOptions");
     $dingoApi->delete("roles/batch", \App\Http\Controllers\Admin\System\RoleController::class."@batchDestroy")->name("roles.batchDestroy");
     $dingoApi->Resource("roles", \App\Http\Controllers\Admin\System\RoleController::class);
 
@@ -87,14 +83,8 @@ $dingoApi->version("v1", [
     // 手机验证码
     $dingoApi->Get("api/service/sendMobileMessage", \App\Http\Controllers\Api\ServiceController::class."@sendMobileMessage")->name("api.service.sendMobileMessage");
 
-    // 用户注册
-    $dingoApi->post("api/user/register", \App\Http\Controllers\Api\MemberController::class."@register")->name("api.user.register");
-
     // 用户登录
     $dingoApi->post("api/user/login", \App\Http\Controllers\Api\MemberController::class."@login")->name("api.user.login");
-
-    // 忘记密码
-    $dingoApi->post("api/user/forget", \App\Http\Controllers\Api\MemberController::class."@forget")->name("api.user.forget");
 });
 
 // mobile端（需要登录）

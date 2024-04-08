@@ -17,83 +17,6 @@ class MemberController extends Controller
     use FormatTrait;
 
     /**
-     * 用户注册
-     * @param Request $request
-     */
-    public function register(Request $request, Member $mMember, Redis $redis)
-    {
-        $params = $request->all();
-
-        $mobile = $params['mobile'] ?? '';
-        $name = $params['name'] ?? '';
-        $mobile_code = $params['mobile_code'] ?? '';
-        $password = $params['password'] ?? '';
-        $cfpassword = $params['cfpassword'] ?? '';
-
-        if (empty($mobile)) {
-            return $this->jsonAdminResult([],10001,'手机号不能为空');
-        }
-
-        $pattern = '/^1[0-9]{10}$/';
-        // $pattern = '/^1((3[0-9])|(4[57])|(5[012356789])|(8[02356789]))[0-9]{8}$/';
-        if (!preg_match($pattern, $mobile)) {
-            return $this->jsonAdminResult([],10001,'手机号格式不正确');
-        }
-
-        $count = $mMember->where('mobile', $mobile)->count();
-        if ($count > 0) {
-            return $this->jsonAdminResult([],10001,'该手机号已注册过');
-        }
-
-        if (empty($name)) {
-            return $this->jsonAdminResult([],10001,'姓名不能为空');
-        }
-
-        if (empty($mobile_code)) {
-            return $this->jsonAdminResult([],10001,'验证码不能为空');
-        }
-
-        if (empty($password)) {
-            return $this->jsonAdminResult([],10001,'密码不能为空');
-        }
-
-        if (empty($cfpassword)) {
-            return $this->jsonAdminResult([],10001,'确认密码不能为空');
-        }
-
-        if ($password != $cfpassword) {
-            return $this->jsonAdminResult([],10001,'密码和确认密码不一致');
-        }
-
-        $config = config('redisKey');
-        $mobileKey = sprintf($config['mem_code']['key'], $mobile);
-        $verify_code = $redis::get($mobileKey);
-        if ($verify_code != $mobile_code) {
-            return $this->jsonAdminResult([],10001,'验证码错误');
-        }
-
-        // 数据
-        $time = date('Y-m-d H:i:s');
-        $salt = rand(1000, 9999);
-        $password = $this->_encodePwd($password, $salt);
-        $data = [
-            'mobile' => $mobile,
-            'name' => $name,
-            'password' => $password,
-            'salt' => $salt,
-            'created_at' => $time,
-            'updated_at' => $time
-        ];
-
-        $res = $mMember->insert($data);
-        if ($res) {
-            return $this->jsonAdminResult();
-        } else {
-            return $this->jsonAdminResult([],10001,'操作失败');
-        }
-    }
-
-    /**
      * 用户登录
      * @param Request $request
      */
@@ -101,18 +24,18 @@ class MemberController extends Controller
     {
         $params = $request->all();
 
-        $mobile = $params['mobile'] ?? '';
+        $username = $params['username'] ?? '';
         $password = $params['password'] ?? '';
 
-        if (empty($mobile)) {
-            return $this->jsonAdminResult([],10001,'手机号不能为空');
+        if (empty($username)) {
+            return $this->jsonAdminResult([],10001,'账号不能为空');
         }
 
         if (empty($password)) {
             return $this->jsonAdminResult([],10001,'密码不能为空');
         }
 
-        $info = $mMember->where('mobile', $mobile)->first();
+        $info = $mMember->where('user_name', $username)->first();
         $info = $this->dbResult($info);
         if (empty($info)) {
             return $this->jsonAdminResult([],10001,'账号或密码错误');
@@ -136,60 +59,6 @@ class MemberController extends Controller
         Redis::hmset($memInfoKey, $info);
 
         return $this->jsonAdminResult(['token' => $token]);
-    }
-
-    /**
-     * 忘记密码
-     * @param Request $request
-     */
-    public function forget(Request $request, Member $mMember, Redis $redis)
-    {
-        $params = $request->all();
-
-        $mobile = $params['mobile'] ?? '';
-        $mobile_code = $params['mobile_code'] ?? '';
-        $password = $params['password'] ?? '';
-        $cfpassword = $params['cfpassword'] ?? '';
-
-        if (empty($mobile)) {
-            return $this->jsonAdminResult([],10001,'手机号不能为空');
-        }
-
-        if (empty($mobile_code)) {
-            return $this->jsonAdminResult([],10001,'验证码不能为空');
-        }
-
-        if (empty($password)) {
-            return $this->jsonAdminResult([],10001,'新密码不能为空');
-        }
-
-        if (empty($cfpassword)) {
-            return $this->jsonAdminResult([],10001,'确认新密码不能为空');
-        }
-
-        if ($password != $cfpassword) {
-            return $this->jsonAdminResult([],10001,'新密码不一致');
-        }
-
-        $config = config('redisKey');
-        $mobileKey = sprintf($config['mem_code']['key'], $mobile);
-        $verify_code = $redis::get($mobileKey);
-        if ($verify_code != $mobile_code) {
-            return $this->jsonAdminResult([],10001,'验证码错误');
-        }
-
-        $info = $mMember->where('mobile', $mobile)->first();
-        $info = $this->dbResult($info);
-        if (empty($info)) {
-            return $this->jsonAdminResult([],10001,'手机号还未注册');
-        }
-
-        $res = $mMember->where('id', $info['id'])->update(['password' => $this->_encodePwd($password, $info['salt'])]);
-        if ($res) {
-            return $this->jsonAdminResult();
-        } else {
-            return $this->jsonAdminResult([],10001,'操作失败');
-        }
     }
 
     /**
@@ -244,7 +113,7 @@ class MemberController extends Controller
             $avatar = $params['avatar'] ?? '';
             $urlPre = config('filesystems.disks.tmp.url');
             $avatar = str_replace($urlPre, '', $avatar);
-            $avatar = str_replace('/static/logo.png', '', $avatar);
+            $avatar = str_replace('/static/avatar.png', '', $avatar);
             if (empty($avatar)) {
                 return $this->jsonAdminResult([],10001,'头像不能为空');
             }
