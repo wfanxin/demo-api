@@ -139,7 +139,6 @@ class ArticleController extends Controller
 
         $time = date('Y-m-d H:i:s');
         $res = $mArticle->where('id', $id)->update([
-            'id' => $id,
             'title' => $title,
             'image' => $image,
             'content' => $content,

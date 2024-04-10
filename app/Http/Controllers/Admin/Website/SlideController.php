@@ -131,7 +131,6 @@ class SlideController extends Controller
 
         $time = date('Y-m-d H:i:s');
         $res = $mSlide->where('id', $id)->update([
-            'id' => $id,
             'title' => $title,
             'image' => $image,
             'updated_at' => $time
