@@ -17,59 +17,15 @@ use Intervention\Image\Facades\Image as Images;
 class Upload
 {
     use FormatTrait;
-    public function handle(Request $request)
-    {
-        $file = $request->file('upload_file');
-        //要保存的文件名 时间+扩展名
-        $saveDir = sprintf("tmp/%s", date("Ymd"));
-
-        if ( !empty($file) ) {
-            if ( !$file->isValid() ) {
-                return false;
-            }else{
-                //获取文件的扩展名
-                $ext = $file->getClientOriginalExtension();
-                $filename = sprintf('%s/%s.%s', $saveDir, uniqid(), $ext);
-                //获取文件的绝对路径，但是获取到的在本地不能打开
-                $path = $file->getRealPath();
-                //保存文件          配置文件存放文件的名字  ，文件名，路径
-                $bool= Storage::disk('upload')->put($filename,file_get_contents($path));
-                if($bool){
-                    return config('filesystems.disks.upload.url').$filename;
-                }
-            }
-        }
-
-        //base64 图片
-        $base64String = $request->get('upload_file'); //截取data:image/png;base64, 这个逗号后的字符
-        if(preg_match('/^(data:\s*image\/(\w+);base64,)/', $base64String, $result)){
-            $ext = $result[2];
-            if( in_array($ext,array('pjpeg','jpeg','jpg','gif','bmp','png')) ){
-                //获取文件的扩展名
-                $filename = sprintf('%s/%s.%s', $saveDir, uniqid(), $ext);
-                //保存文件
-                $bool = Storage::disk('upload')->put($filename, base64_decode(str_replace($result[1], '', $base64String)) );
-                if($bool) {
-                    return config('filesystems.disks.upload.url').$filename;
-                }else{
-                    return false;
-                }
-            }else{
-                //文件类型错误
-                return false;
-            }
-        }
-
-        return false;
-    }
 
     /**
-     * 1. 上传到临时目录
+     * 上传到临时目录
      * @param $file 上传的文件对象，$_FILES/$request->file('file');
      * @param $path 待上传的相对路径
+     * @param $fileName 待上传的文件名
      * @return bool|string
      */
-    public function uploadToTmp($file, $path)
+    public function uploadToTmp($file, $path, $fileName = '')
     {
         set_time_limit(0);
         @ini_set('memory_limit', '4096M');
@@ -83,7 +39,9 @@ class Upload
                 $tmpFile = $file->getRealPath();
                 //获取文件内容
                 $content = file_get_contents($tmpFile);
-                $fileName = date('YmdHis') . rand(10000, 99999) . "." . $kuoname;
+                if (empty($fileName)) {
+                    $fileName = date('YmdHis') . rand(10000, 99999) . "." . $kuoname;
+                }
 
                 $res = Storage::disk('tmp')->put(sprintf("/%s%s", $path, $fileName), $content);
                 if ($res) {
@@ -97,7 +55,7 @@ class Upload
     }
 
     /**
-     * 2. 移动零时文件到正式目录下
+     * 移动零时文件到正式目录下
      *
      * @param $tmpFile
      * @param $type oss为阿里云上传
@@ -239,6 +197,11 @@ class Upload
         }
     }
 
+    /**
+     * base64转图片
+     * @param Request $request
+     * @return bool|string
+     */
     public function base64ToImg(Request $request)
     {
         //要保存的文件名 时间+扩展名
@@ -273,16 +236,17 @@ class Upload
         return false;
     }
 
-
-    public function resize_image($tmpname,$newx,$newy)
+    /**
+     * 等比例缩放
+     * @param $tmpname
+     * @param $newx
+     * @param $newy
+     * @return \Intervention\Image\Image
+     */
+    public function resize_image($tmpname, $newx, $newy)
     {
         $image = Images::make($tmpname);
         $image->resize($newx,$newy);//设置图片的大小(等比例缩放)
-         return $image->save($tmpname);//图片保存到新的路径
+        return $image->save($tmpname);//图片保存到新的路径
     }
-
-
-    //删除oss上面的文件
-
-
 }
