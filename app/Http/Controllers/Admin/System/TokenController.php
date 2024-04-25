@@ -77,9 +77,6 @@ class TokenController extends Controller
             return $this->jsonAdminResultWithLog($request, [], 10003);
         }
 
-        // 清除旧的登录信息缓存
-        $this->clearXtoken($request->userId);
-
         $user->where(['user_name' => $request['user_name']])->update([
             'error_amount' => 0,
             'last_ip' => $request->getClientIp(),
@@ -90,10 +87,24 @@ class TokenController extends Controller
         $xTokenKey = sprintf($redisKey['x_token']['key'], $userInfo['id']); // 登录授权令牌信息
         $userInfoKey = sprintf($redisKey['user_info']['key'], $userInfo['id']); // 用户信息
 
-        // 发放校验令牌
-        $time = time();
-        $auth = md5(md5(sprintf("%s_%s_%s", $time, '34jkjf234KGDF3ORGI4j', $userInfo['id'])));
-        $token = sprintf("%s|%s|%s", $auth, $time, $userInfo['id']);
+        $multiple_login = config('admin.multiple_login');
+        if ($multiple_login) { // 多点登录
+            $token = Redis::get($xTokenKey);
+            if (!$token) { // 令牌不存在
+                // 发放校验令牌
+                $time = time();
+                $auth = md5(md5(sprintf("%s_%s_%s", $time, '34jkjf234KGDF3ORGI4j', $userInfo['id'])));
+                $token = sprintf("%s|%s|%s", $auth, $time, $userInfo['id']);
+            }
+        } else { // 单点登录
+            // 清除旧的登录信息缓存
+            $this->clearXtoken($request->userId);
+
+            // 发放校验令牌
+            $time = time();
+            $auth = md5(md5(sprintf("%s_%s_%s", $time, '34jkjf234KGDF3ORGI4j', $userInfo['id'])));
+            $token = sprintf("%s|%s|%s", $auth, $time, $userInfo['id']);
+        }
 
         Redis::set($xTokenKey, $token);
         Redis::expire($xTokenKey, $redisKey['x_token']['ttl']);
@@ -126,7 +137,11 @@ class TokenController extends Controller
             return $this->jsonAdminResultWithLog($request, [], 10002);
         }
 
-        $result = $this->clearXtoken($request->userId);
+        $multiple_login = config('admin.multiple_login');
+        $result = true;
+        if (!$multiple_login) { // 单点登录
+            $result = $this->clearXtoken($request->userId);
+        }
         if ($result) {
             return $this->jsonAdminResultWithLog($request);
         } else {

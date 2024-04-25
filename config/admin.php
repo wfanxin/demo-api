@@ -30,6 +30,9 @@ return [
         '@Get:lv_logs'
     ],
 
+    // 是否多登录
+    'multiple_login' => false,
+
     // 选项配置
     'option_list' => [
         'sex' => ['name' => '性别', 'value' => ''],
